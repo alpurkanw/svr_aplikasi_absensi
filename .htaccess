@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Ganti path di bawah ini dengan lokasi folder aplikasi yang baru.
+    # Contoh:
+    # Jika di root folder, gunakan: RewriteBase /
+    # Jika di sub-folder 'proyek_baru', gunakan: RewriteBase /proyek_baru/
+    RewriteBase /devel/payroll_app/
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
