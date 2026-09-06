@@ -21,7 +21,27 @@ class Api_auth
             return false;
         }
 
+        $token = trim($matches[1]);
         $configured_token = (string) $this->CI->config->item('api_token');
-        return $configured_token !== '' && hash_equals($configured_token, trim($matches[1]));
+        if ($configured_token !== '' && hash_equals($configured_token, $token)) {
+            return true;
+        }
+
+        $token_hash = hash('sha256', $token);
+        $row = $this->CI->db->where('token_hash', $token_hash)
+            ->where('revoked_at IS NULL', null, false)
+            ->group_start()
+                ->where('expires_at IS NULL', null, false)
+                ->or_where('expires_at >', date('Y-m-d H:i:s'))
+            ->group_end()
+            ->get('api_tokens')->row_array();
+
+        if (!$row) {
+            return false;
+        }
+
+        $this->CI->db->where('id', (int) $row['id'])
+            ->update('api_tokens', array('last_used_at' => date('Y-m-d H:i:s')));
+        return true;
     }
 }

@@ -4,7 +4,7 @@
     # Contoh:
     # Jika di root folder, gunakan: RewriteBase /
     # Jika di sub-folder 'proyek_baru', gunakan: RewriteBase /proyek_baru/
-    RewriteBase /devel/payroll_app/
+    RewriteBase /devel/svr_aplikasi_absensi/
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

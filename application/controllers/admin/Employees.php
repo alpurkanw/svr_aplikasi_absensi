@@ -27,13 +27,32 @@ class Employees extends CI_Controller
         $this->output->set_content_type('application/json');
         $this->form_validation->set_rules('employee_code', 'Employee Code', 'trim|required|max_length[100]');
         $this->form_validation->set_rules('name', 'Nama', 'trim|required|max_length[150]');
+        $this->form_validation->set_rules('nik', 'No. KTP', 'trim|max_length[50]');
         if ($this->form_validation->run() === false) {
             return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => validation_errors())));
         }
 
+        $employee_code = trim($this->input->post('employee_code', true));
+        $name = trim($this->input->post('name', true));
+        $nik = trim($this->input->post('nik', true));
+
+        if ($this->Employee_model->exists_by_code($employee_code)) {
+            return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => 'Employee Code sudah terdaftar.')));
+        }
+
+        if ($nik !== '' && $this->Employee_model->exists_by_nik($nik)) {
+            return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => 'No. KTP sudah terdaftar.')));
+        }
+
         $id = $this->Employee_model->save(array(
-            'employee_code' => trim($this->input->post('employee_code', true)),
-            'name' => trim($this->input->post('name', true)),
+            'employee_code' => $employee_code,
+            'name' => $name,
+            'nik' => $nik !== '' ? $nik : null,
+            'gender' => $this->input->post('gender', true) ?: null,
+            'birth_place' => trim($this->input->post('birth_place', true)) !== '' ? trim($this->input->post('birth_place', true)) : null,
+            'birth_date' => $this->input->post('birth_date', true) ?: null,
+            'address' => trim($this->input->post('address', true)) !== '' ? trim($this->input->post('address', true)) : null,
+            'phone' => trim($this->input->post('phone', true)) !== '' ? trim($this->input->post('phone', true)) : null,
             'position_name' => trim($this->input->post('position_name', true)),
             'department_name' => trim($this->input->post('department_name', true)),
             'employment_status' => $this->input->post('employment_status', true) ?: 'TETAP',
@@ -68,10 +87,16 @@ class Employees extends CI_Controller
                 'employee' => array(
                     'employee_code' => $employee['employee_code'],
                     'name' => $employee['name'],
-                    'position_name' => $employee['position_name'],
-                    'department_name' => $employee['department_name'],
-                    'employment_status' => $employee['employment_status'],
-                    'join_date' => $employee['join_date'],
+                    'nik' => $employee['nik'] ?? '-',
+                    'gender' => $employee['gender'] ?? '-',
+                    'birth_place' => $employee['birth_place'] ?? '-',
+                    'birth_date' => $employee['birth_date'] ?? '-',
+                    'phone' => $employee['phone'] ?? '-',
+                    'address' => $employee['address'] ?? '-',
+                    'position_name' => $employee['position_name'] ?? '-',
+                    'department_name' => $employee['department_name'] ?? '-',
+                    'employment_status' => $employee['employment_status'] ?? '-',
+                    'join_date' => $employee['join_date'] ?? '-',
                 ),
                 'salary' => $this->Employee_model->salary_details_with_names($employee_id),
             ),

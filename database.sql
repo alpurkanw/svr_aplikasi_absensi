@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `presensi` (
 CREATE TABLE IF NOT EXISTS `employees` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `employee_code` VARCHAR(100) NOT NULL,
+    `nip` VARCHAR(50) NULL,
     `nik` VARCHAR(50) NULL,
     `name` VARCHAR(150) NOT NULL,
     `birth_place` VARCHAR(100) NULL,
@@ -39,6 +40,8 @@ CREATE TABLE IF NOT EXISTS `employees` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_employees_code` (`employee_code`),
+    UNIQUE KEY `uq_employees_nip` (`nip`),
+    UNIQUE KEY `uq_employees_nik` (`nik`),
     KEY `idx_employees_active` (`is_active`),
     KEY `idx_employees_department` (`department_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -258,4 +261,20 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
     PRIMARY KEY (`id`),
     KEY `idx_audit_module_record` (`module`, `record_id`),
     KEY `idx_audit_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `api_tokens` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL,
+    `token_prefix` VARCHAR(16) NOT NULL,
+    `token_hash` CHAR(64) NOT NULL,
+    `expires_at` DATETIME NULL,
+    `revoked_at` DATETIME NULL,
+    `last_used_at` DATETIME NULL,
+    `created_by` INT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_api_tokens_hash` (`token_hash`),
+    KEY `idx_api_tokens_active` (`revoked_at`, `expires_at`),
+    CONSTRAINT `fk_api_tokens_created_by` FOREIGN KEY (`created_by`) REFERENCES `tbl_user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

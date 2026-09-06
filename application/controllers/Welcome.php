@@ -21,26 +21,13 @@ class Welcome extends CI_Controller
 	 */
 	public function index()
 	{
-		// echo "tes welcome";
-		// print_r($_SESSION);
-		// return;
 		if ($this->session->userdata('logged_in')) {
-			// Redirect berdasarkan role user jika diperlukan
-			if ($this->session->userdata('level') === '1') {
-				redirect('admin/Home');
-			} elseif ($this->session->userdata('level') === '3') {
-				redirect('owner/Home');
-			} else {
-				redirect('satgas/Home');
+			if ($this->session->userdata('role') === 'ADMIN') {
+				redirect('admin/attendance');
+				return;
 			}
-		} else {
-			// $this->load->view('auth/login');
-			// echo "belum pernah login , arahkan ke form login ";
-			// return;
-			redirect('Auth/open_f_login');
 		}
 
-
-		// $this->load->view('welcome_message');
+		redirect('Auth/open_f_login');
 	}
 }

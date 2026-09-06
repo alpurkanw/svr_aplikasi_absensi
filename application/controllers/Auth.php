@@ -12,19 +12,12 @@ class Auth extends CI_Controller
 
     public function index()
     {
-
-        // print_r($_SESSION);
-        // return;
-
-        if ($this->session->userdata('logged_in')) {
-            // Redirect berdasarkan role user jika diperlukan
+        if ($this->session->userdata('logged_in') && $this->session->userdata('role') === 'ADMIN') {
             redirect('admin/attendance');
-        } else {
-            // $this->load->view('auth/login');
-            // echo "belum pernah login , arahkan ke form login ";
-            // return;
-            redirect('Auth/open_f_login');
+            return;
         }
+
+        redirect('Auth/open_f_login');
     }
     public function open_f_login()
     {

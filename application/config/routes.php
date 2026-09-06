@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
@@ -58,7 +58,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 // $route['translate_uri_dashes'] = FALSE;
 
 
-$route['default_controller'] = 'welcome';
+$route['default_controller'] = 'Auth';
 $route['404_override'] = '';
 // $route['owner/'] = 'owner/home';
 // $route['member/(:any)'] = 'member/home';
@@ -66,6 +66,7 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 $route['health'] = 'api/presensi/health';
+$route['api/v1/connection'] = 'api/presensi/connection';
 $route['api/v1/presensi/upload'] = 'api/presensi/upload';
 $route['api/v1/presensi'] = 'api/presensi/index';
 $route['api/v1/presensi/(:num)'] = 'api/presensi/show/$1';
@@ -76,5 +77,16 @@ $route['admin/employees/save'] = 'admin/employees/save';
 $route['admin/employees/detail/(:num)'] = 'admin/employees/detail/$1';
 $route['admin/employees/salary-details/(:num)'] = 'admin/employees/salary_details/$1';
 $route['admin/employees/salary-details/(:num)/save'] = 'admin/employees/save_salary_details/$1';
+$route['admin/payroll-components'] = 'admin/payroll_components/index';
+$route['admin/payroll-components/save'] = 'admin/payroll_components/save';
+$route['admin/payroll-components/toggle-status/(:num)'] = 'admin/payroll_components/toggle_status/$1';
+$route['admin/payroll_components'] = 'admin/payroll_components/index';
+$route['admin/payroll-details'] = 'admin/payroll_details/index';
+$route['admin/payroll-details/(:num)'] = 'admin/payroll_details/edit/$1';
+$route['admin/payroll-details/(:num)/save'] = 'admin/payroll_details/save/$1';
+$route['admin/tokens'] = 'admin/tokens/index';
+$route['admin/tokens/generate'] = 'admin/tokens/generate';
+$route['admin/tokens/revoke/(:num)'] = 'admin/tokens/revoke/$1';
+$route['admin/presensi'] = 'admin/presensi_log/index';
 $route['admin/attendance'] = 'admin/attendance/index';
 $route['admin/attendance/process'] = 'admin/attendance/process';

@@ -41,7 +41,8 @@ CREATE DATABASE payroll_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 Base URL instalasi ini: `http://localhost/devel/payroll_app`
 
-- `GET /health` tanpa token
+- `GET /health` tanpa token (health check server umum)
+- `GET /api/v1/connection` dengan token (uji koneksi desktop terautentikasi)
 - `POST /api/v1/presensi/upload` dengan Bearer Token
 - `GET /api/v1/presensi?page=1&limit=50&user_id=EMP-1001&start_date=2026-08-01&end_date=2026-08-31`
 - `GET /api/v1/presensi/{id}` dengan Bearer Token
@@ -103,6 +104,24 @@ Contoh response sukses:
 	}
 }
 ```
+
+## Koneksi aplikasi desktop
+
+Aplikasi desktop menyimpan token asli secara lokal setelah token dibuat dari menu
+**Pembuatan Token**. Token dapat digunakan terus-menerus tanpa tanggal kedaluwarsa
+jika kolom kedaluwarsa dikosongkan. Web server hanya menyimpan hash token, bukan
+token asli. Saat aplikasi desktop pertama kali berjalan, kirim:
+
+```powershell
+$headers = @{ Authorization = "Bearer hcis_<token>" }
+Invoke-RestMethod `
+    -Uri "http://localhost/devel/svr_aplikasi_absensi/api/v1/connection" `
+    -Method Get `
+    -Headers $headers
+```
+
+Response `200` berarti token valid dan desktop boleh mengirim data presensi.
+Response `401` berarti token tidak valid, sudah dicabut, atau sudah kedaluwarsa.
 
 Error memakai format berikut: `{"success":false,"message":"Error description"}` dengan status 400, 401, 404, 422, atau 500 sesuai kasus. Token tidak pernah ditulis ke log dan fingerprint mentah tidak diterima atau disimpan.
 

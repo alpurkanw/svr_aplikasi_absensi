@@ -18,6 +18,21 @@ class Employee_model extends CI_Model
         return $this->db->where('employee_code', $employee_code)->get($this->table)->row_array();
     }
 
+    public function exists_by_code($employee_code)
+    {
+        return (bool) $this->db->where('LOWER(employee_code) =', strtolower(trim($employee_code)))->count_all_results($this->table);
+    }
+
+    public function exists_by_nip($nip)
+    {
+        return (bool) $this->db->where('LOWER(nip) =', strtolower(trim($nip)))->count_all_results($this->table);
+    }
+
+    public function exists_by_nik($nik)
+    {
+        return (bool) $this->db->where('LOWER(nik) =', strtolower(trim($nik)))->count_all_results($this->table);
+    }
+
     public function find_by_id($id)
     {
         return $this->db->where('id', (int) $id)->get($this->table)->row_array();

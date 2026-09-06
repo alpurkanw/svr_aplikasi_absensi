@@ -63,4 +63,17 @@ class Presensi_model extends CI_Model
 
         return array('items' => $rows, 'total' => (int) $total);
     }
+
+    public function list_by_date($date)
+    {
+        return $this->db->select('p.*, e.name AS employee_name')
+            ->from($this->table . ' p')
+            ->join('employees e', 'e.employee_code = p.user_id', 'left')
+            ->where('p.timestamp >=', $date . ' 00:00:00')
+            ->where('p.timestamp <=', $date . ' 23:59:59')
+            ->order_by('p.timestamp', 'ASC')
+            ->order_by('p.id', 'ASC')
+            ->get()
+            ->result_array();
+    }
 }

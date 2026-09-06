@@ -16,6 +16,19 @@ class Presensi extends CI_Controller
         api_json_response(200, array('status' => 'ok'));
     }
 
+    public function connection()
+    {
+        if (!$this->api_auth->is_authenticated()) {
+            return api_error(401, 'Unauthorized');
+        }
+
+        return api_json_response(200, array(
+            'success' => true,
+            'status' => 'ok',
+            'message' => 'Connection authenticated',
+        ));
+    }
+
     public function upload()
     {
         if (!$this->api_auth->is_authenticated()) {
