@@ -22,6 +22,7 @@
 
     <div class="sidebar-heading">SETTING</div>
     <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/tokens') ?>"><i class="fas fa-fw fa-key"></i><span>Pembuatan Token</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/client-credentials') ?>"><i class="fas fa-fw fa-key"></i><span>Atur PIN client</span></a></li>
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li> -->
 
 

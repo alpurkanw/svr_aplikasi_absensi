@@ -27,12 +27,22 @@ class Api_auth
             return true;
         }
 
+        $client_config_path = APPPATH . 'config/config_client.json';
+        if (is_file($client_config_path)) {
+            $client_config = json_decode(file_get_contents($client_config_path), true);
+            $client_token = is_array($client_config) && isset($client_config['token_client_credential'])
+                ? (string) $client_config['token_client_credential'] : '';
+            if ($client_token !== '' && hash_equals($client_token, $token)) {
+                return true;
+            }
+        }
+
         $token_hash = hash('sha256', $token);
         $row = $this->CI->db->where('token_hash', $token_hash)
             ->where('revoked_at IS NULL', null, false)
             ->group_start()
-                ->where('expires_at IS NULL', null, false)
-                ->or_where('expires_at >', date('Y-m-d H:i:s'))
+            ->where('expires_at IS NULL', null, false)
+            ->or_where('expires_at >', date('Y-m-d H:i:s'))
             ->group_end()
             ->get('api_tokens')->row_array();
 

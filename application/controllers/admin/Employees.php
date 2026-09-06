@@ -15,9 +15,25 @@ class Employees extends CI_Controller
     public function index()
     {
         $components = $this->db->where('is_active', 1)->order_by('component_type', 'ASC')->order_by('id', 'ASC')->get('payroll_components')->result_array();
+        $fingerprint_counts = $this->db
+            ->select('employee_id, COUNT(*) AS fingerprint_count')
+            ->where('is_active', 1)
+            ->group_by('employee_id')
+            ->get('employee_fingerprint_templates')
+            ->result_array();
+        $fingerprint_counts_by_employee = array();
+        foreach ($fingerprint_counts as $row) {
+            $fingerprint_counts_by_employee[(int) $row['employee_id']] = (int) $row['fingerprint_count'];
+        }
+        $employees = $this->Employee_model->all();
+        foreach ($employees as &$employee) {
+            $employee['fingerprint_count'] = $fingerprint_counts_by_employee[(int) $employee['id']] ?? 0;
+        }
+        unset($employee);
+
         $this->load->view('admin/employees/index', array(
             'title' => 'Data Karyawan',
-            'employees' => $this->Employee_model->all(),
+            'employees' => $employees,
             'components' => $components,
         ));
     }
