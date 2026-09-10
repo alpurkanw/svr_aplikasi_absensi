@@ -72,7 +72,6 @@ class Employees extends CI_Controller
             'position_name' => trim($this->input->post('position_name', true)),
             'department_name' => trim($this->input->post('department_name', true)),
             'employment_status' => $this->input->post('employment_status', true) ?: 'TETAP',
-            'base_salary' => (float) ($this->input->post('base_salary', true) ?: 0),
         ));
         return $this->output->set_output(json_encode(array('success' => true, 'id' => $id)));
     }

@@ -15,7 +15,7 @@
         <?php $this->load->view('admin/02_topbar'); ?>
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div><h1 class="h3 text-gray-800 mb-0">Detail Komponen Gaji</h1><small class="text-muted"><?= html_escape($employee['employee_code'] . ' - ' . $employee['name']) ?></small></div>
+                <div><h1 class="h3 text-gray-800 mb-0">Detail Komponen Gaji</h1><small class="text-muted"><?= html_escape($employee['employee_code'] . ' - ' . $employee['name']) ?> &middot; seluruh nominal gaji diatur melalui komponen</small></div>
                 <a class="btn btn-secondary" href="<?= site_url('admin/payroll-details') ?>"><i class="fas fa-arrow-left"></i> Kembali</a>
             </div>
             <form id="detailForm">
@@ -25,9 +25,17 @@
                             <div class="card-header bg-<?= $group['class'] ?> text-white"><i class="fas fa-<?= $type === 'EARNING' ? 'plus' : 'minus' ?>-circle mr-2"></i><?= $group['title'] ?></div>
                             <div class="card-body">
                             <?php $found = false; foreach ($components as $component): if ($component['component_type'] !== $type) continue; $found = true; ?>
-                                <div class="form-group">
-                                    <label><?= html_escape($component['name']) ?> <small class="text-muted">(<?= html_escape($component['code']) ?>)</small></label>
-                                    <div class="input-group"><div class="input-group-prepend"><span class="input-group-text">Rp</span></div><input type="number" min="0" step="0.01" class="form-control" name="amount[<?= (int) $component['id'] ?>]" value="<?= html_escape(isset($amounts[$component['id']]) ? $amounts[$component['id']] : '0') ?>"></div>
+                                <div class="form-group component-row">
+                                    <div class="custom-control custom-checkbox mb-2">
+                                        <input type="checkbox" class="custom-control-input component-toggle" id="component-<?= (int) $component['id'] ?>" name="selected_components[]" value="<?= (int) $component['id'] ?>" <?= array_key_exists($component['id'], $amounts) ? 'checked' : '' ?>>
+                                        <label class="custom-control-label" for="component-<?= (int) $component['id'] ?>">
+                                            <?= html_escape($component['name']) ?> <small class="text-muted">(<?= html_escape($component['code']) ?>)</small>
+                                        </label>
+                                    </div>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
+                                        <input type="number" min="0" step="0.01" class="form-control component-amount" name="amount[<?= (int) $component['id'] ?>]" value="<?= html_escape(isset($amounts[$component['id']]) ? $amounts[$component['id']] : '0') ?>" <?= array_key_exists($component['id'], $amounts) ? '' : 'disabled' ?>>
+                                    </div>
                                     <?php if ($component['calculation_type'] !== 'FIXED'): ?><small class="form-text text-muted">Nilai ini dapat dihitung ulang oleh proses payroll berdasarkan metode <?= html_escape($component['calculation_type']) ?>.</small><?php endif; ?>
                                 </div>
                             <?php endforeach; if (!$found): ?><p class="text-muted mb-0">Belum ada komponen aktif.</p><?php endif; ?>
@@ -43,6 +51,10 @@
 <script src="<?= base_url('assets/adminsb/vendor/jquery/jquery.min.js') ?>"></script>
 <script src="<?= base_url('assets/adminsb/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 <script>
+$('.component-toggle').on('change', function () {
+    $(this).closest('.component-row').find('.component-amount').prop('disabled', !this.checked);
+});
+
 $('#detailForm').on('submit', function (event) {
     event.preventDefault();
     $.post('<?= site_url('admin/payroll-details/' . (int) $employee['id'] . '/save') ?>', $(this).serialize(), function (response) {

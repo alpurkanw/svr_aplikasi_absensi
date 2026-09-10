@@ -18,7 +18,7 @@
                 <div class="container-fluid">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h1 class="h3 text-gray-800">Rekap Absensi</h1>
-                        <form method="post" action="<?= site_url('admin/attendance/process') ?>" class="form-inline"><input type="date" name="date" value="<?= html_escape($date) ?>" class="form-control mr-2"><button class="btn btn-primary">Proses Attendance</button></form>
+                        <form method="get" action="<?= site_url('admin/attendance') ?>" class="form-inline"><input type="date" name="date" value="<?= html_escape($date) ?>" class="form-control mr-2"><button class="btn btn-primary">Tampilkan</button></form>
                     </div>
                     <div class="card shadow">
                         <div class="card-body">
@@ -39,8 +39,8 @@
                                     <tbody><?php foreach ($rows as $row): ?><tr>
                                                 <td><?= html_escape($row['employee_code']) ?></td>
                                                 <td><?= html_escape($row['name']) ?></td>
-                                                <td><?= html_escape($row['check_in']) ?></td>
-                                                <td><?= html_escape($row['check_out']) ?></td>
+                                                <td><?= $row['check_in'] ? html_escape(date('H:i', strtotime($row['check_in']))) : '-' ?></td>
+                                                <td><?= $row['check_out'] ? html_escape(date('H:i', strtotime($row['check_out']))) : '-' ?></td>
                                                 <td><?= (int) $row['late_minutes'] ?> menit</td>
                                                 <td><?= (int) $row['early_leave_minutes'] ?> menit</td>
                                                 <td><?= (int) $row['overtime_minutes'] ?> menit</td>

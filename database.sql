@@ -173,11 +173,15 @@ CREATE TABLE IF NOT EXISTS `payroll_components` (
     `code` VARCHAR(50) NOT NULL,
     `name` VARCHAR(100) NOT NULL,
     `component_type` ENUM('EARNING','DEDUCTION') NOT NULL,
+    `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
     `calculation_type` ENUM('FIXED','PERCENTAGE','PER_MINUTE','RANGE') NOT NULL DEFAULT 'FIXED',
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_payroll_component_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `payroll_components`
+    ADD COLUMN IF NOT EXISTS `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 1 AFTER `component_type`;
 
 INSERT IGNORE INTO `payroll_components` (`code`, `name`, `component_type`, `calculation_type`) VALUES
 ('GAJI_POKOK', 'Gaji Pokok', 'EARNING', 'FIXED'),
@@ -229,6 +233,27 @@ CREATE TABLE IF NOT EXISTS `payroll_details` (
     UNIQUE KEY `uq_payroll_detail_employee` (`period_id`, `employee_id`),
     CONSTRAINT `fk_payroll_detail_period` FOREIGN KEY (`period_id`) REFERENCES `payroll_periods` (`id`),
     CONSTRAINT `fk_payroll_detail_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `trx_payslip` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `employee_id` BIGINT UNSIGNED NOT NULL,
+    `period_year` SMALLINT UNSIGNED NOT NULL,
+    `period_month` TINYINT UNSIGNED NOT NULL,
+    `period_label` VARCHAR(50) NOT NULL,
+    `component_id` BIGINT UNSIGNED NOT NULL,
+    `component_code` VARCHAR(50) NOT NULL,
+    `component_name` VARCHAR(100) NOT NULL,
+    `component_type` ENUM('EARNING','DEDUCTION') NOT NULL,
+    `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    `amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_trx_payslip_employee_period_component` (`employee_id`, `period_year`, `period_month`, `component_id`),
+    KEY `idx_trx_payslip_period` (`period_year`, `period_month`),
+    CONSTRAINT `fk_trx_payslip_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+    CONSTRAINT `fk_trx_payslip_component` FOREIGN KEY (`component_id`) REFERENCES `payroll_components` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `loan_applications` (

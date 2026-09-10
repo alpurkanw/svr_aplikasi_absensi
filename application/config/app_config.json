@@ -1,0 +1,10 @@
+{
+	"nama_perusahaan": "PT LOGAM MURNI",
+	"alamat": "JL. Jend Ahmad Yani",
+	"rule_absensi": {
+		"mulai_masuk": 6,
+		"akhir_masuk": 9,
+		"mulai_pulang": 17,
+		"akhir_pulang": 24
+	}
+}

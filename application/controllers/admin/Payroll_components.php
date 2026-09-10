@@ -13,7 +13,7 @@ class Payroll_components extends CI_Controller
 
     public function index()
     {
-        $components = $this->db->order_by('component_type', 'ASC')->order_by('id', 'ASC')->get('payroll_components')->result_array();
+        $components = $this->db->order_by('component_type', 'ASC')->order_by('sort_order', 'ASC')->order_by('id', 'ASC')->get('payroll_components')->result_array();
         $grouped = array(
             'EARNING' => array(),
             'DEDUCTION' => array(),
@@ -36,6 +36,7 @@ class Payroll_components extends CI_Controller
         $this->form_validation->set_rules('name', 'Nama Komponen', 'trim|required|max_length[100]');
         $this->form_validation->set_rules('component_type', 'Kelompok', 'required|in_list[EARNING,DEDUCTION]');
         $this->form_validation->set_rules('calculation_type', 'Metode Perhitungan', 'required|in_list[FIXED,PERCENTAGE,PER_MINUTE,RANGE]');
+        $this->form_validation->set_rules('sort_order', 'No. Urut', 'trim|required|integer|greater_than_equal_to[1]');
 
         if ($this->form_validation->run() === false) {
             return $this->output->set_status_header(422)->set_output(json_encode(array(
@@ -62,6 +63,7 @@ class Payroll_components extends CI_Controller
             'name' => trim($this->input->post('name', true)),
             'component_type' => $this->input->post('component_type', true),
             'calculation_type' => $this->input->post('calculation_type', true),
+            'sort_order' => max(1, (int) $this->input->post('sort_order', true)),
             'is_active' => (int) ($this->input->post('is_active', true) ?: 1),
         );
 

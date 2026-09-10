@@ -29,6 +29,7 @@ class Payroll_details extends CI_Controller
 
         $components = $this->db->where('is_active', 1)
             ->order_by('component_type', 'ASC')
+            ->order_by('sort_order', 'ASC')
             ->order_by('id', 'ASC')
             ->get('payroll_components')->result_array();
         $saved = $this->Employee_model->salary_details($employee_id);
@@ -55,7 +56,23 @@ class Payroll_details extends CI_Controller
             )));
         }
 
-        $amounts = $this->input->post('amount');
+        $selected_components = $this->input->post('selected_components');
+        $posted_amounts = $this->input->post('amount');
+        $selected_components = is_array($selected_components) ? $selected_components : array();
+        $posted_amounts = is_array($posted_amounts) ? $posted_amounts : array();
+        $active_components = $this->db->select('id')->where('is_active', 1)->get('payroll_components')->result_array();
+        $active_ids = array();
+        foreach ($active_components as $component) {
+            $active_ids[(int) $component['id']] = true;
+        }
+        $amounts = array();
+        foreach ($selected_components as $component_id) {
+            $component_id = (int) $component_id;
+            if ($component_id <= 0 || !isset($active_ids[$component_id])) {
+                continue;
+            }
+            $amounts[$component_id] = isset($posted_amounts[$component_id]) ? $posted_amounts[$component_id] : 0;
+        }
         try {
             $this->Employee_model->save_salary_details($employee_id, is_array($amounts) ? $amounts : array());
         } catch (Throwable $exception) {

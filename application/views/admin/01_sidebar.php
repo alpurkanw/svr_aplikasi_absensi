@@ -13,16 +13,25 @@
     <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/employees') ?>"><i class="fas fa-fw fa-users"></i><span>Data Karyawan</span></a></li>
     <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li>
     <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-details') ?>"><i class="fas fa-fw fa-id-card"></i><span>Detail Komponen Gaji</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payslips') ?>"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Lihat Slip Gaji</span></a></li>
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li> -->
 
     <div class="sidebar-heading">MONITORING</div>
     <li class="nav-item py-0"><a class="nav-link my-0" href="<?= site_url('admin/presensi') ?>"><i class="fas fa-fw fa-list"></i><span class="my-0">Log absensi</span></a></li>
+    <li class="nav-item py-0"><a class="nav-link my-0" href="<?= site_url('admin/attendance') ?>"><i class="fas fa-fw fa-list"></i><span class="my-0">Rekap Absensi</span></a></li>
+    <li class="nav-item py-0"><a class="nav-link my-0" href="<?= site_url('/admin/attendance-monthly') ?>"><i class="fas fa-fw fa-list"></i><span class="my-0">Rekap Absensi Bulanan</span></a></li>
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/attendance') ?>"><i class="fas fa-fw fa-calendar-check"></i><span>Monitoring Absensi</span></a></li> -->
 
 
+    <div class="sidebar-heading">TRANSAKSI</div>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payslips/input') ?>"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Input Slip Gaji</span></a></li>
+    <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/client-credentials') ?>"><i class="fas fa-fw fa-cog"></i><span>Client Credentials</span></a></li> -->
+    <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li> -->
+
+
     <div class="sidebar-heading">SETTING</div>
-    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/tokens') ?>"><i class="fas fa-fw fa-key"></i><span>Pembuatan Token</span></a></li>
-    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/client-credentials') ?>"><i class="fas fa-fw fa-key"></i><span>Atur PIN client</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/app-config') ?>"><i class="fas fa-fw fa-cog"></i><span>Aplikasi</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/client-credentials') ?>"><i class="fas fa-fw fa-cog"></i><span>Client Credentials</span></a></li>
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li> -->
 
 

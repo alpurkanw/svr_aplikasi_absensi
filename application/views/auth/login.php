@@ -56,6 +56,19 @@
             max-width: 520px;
         }
 
+        .illustration-text h1 {
+            margin: 0 0 0.75rem;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.08;
+        }
+
+        .illustration-text p {
+            margin: 0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
         .login-form-panel {
             flex: 0 0 30%;
             min-width: 320px;
@@ -101,6 +114,8 @@
     <div class="login-split">
         <div class="login-illustration">
             <div class="illustration-text">
+                <h1>Selamat Datang di HCIS Payroll</h1>
+                <p>Kelola penggajian dan administrasi karyawan dengan lebih mudah.</p>
             </div>
         </div>
 
@@ -109,7 +124,7 @@
                 <div class="card-body p-0">
                     <div class="p-3">
                         <div class="text-center">
-                            <h1 class="h4 text-gray-900 mb-4 fw-bold">Selamat Datang Kembali!</h1>
+                            <h1 class="h4 text-gray-900 mb-4 fw-bold">Silahkan Login untuk memulai</h1>
                         </div>
 
                         <?php if ($this->session->flashdata('error')) : ?>

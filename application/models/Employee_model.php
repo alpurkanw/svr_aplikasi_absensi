@@ -65,7 +65,7 @@ class Employee_model extends CI_Model
 
     public function salary_details_with_names($employee_id)
     {
-        return $this->db->select('pc.name, pc.component_type, epc.amount')
+        return $this->db->select('pc.name, pc.component_type, pc.sort_order, epc.amount')
             ->from('employee_payroll_components epc')
             ->join('payroll_components pc', 'pc.id = epc.component_id')
             ->where('epc.employee_id', (int) $employee_id)
@@ -76,6 +76,7 @@ class Employee_model extends CI_Model
                 ->or_where('epc.effective_until >=', date('Y-m-d'))
             ->group_end()
             ->order_by('pc.component_type', 'ASC')
+            ->order_by('pc.sort_order', 'ASC')
             ->order_by('pc.id', 'ASC')
             ->get()->result_array();
     }
