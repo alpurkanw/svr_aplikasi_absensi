@@ -34,37 +34,82 @@ class App_config extends CI_Controller
                 'akhir_masuk' => $this->input->post('akhir_masuk', true),
                 'mulai_pulang' => $this->input->post('mulai_pulang', true),
                 'akhir_pulang' => $this->input->post('akhir_pulang', true),
+                'potongan_keterlambatan' => array(
+                    array(
+                        'mulai_menit' => 6,
+                        'sampai_menit' => 10,
+                        'persentase' => $this->input->post('potongan_6_10', true),
+                    ),
+                    array(
+                        'mulai_menit' => 11,
+                        'sampai_menit' => 15,
+                        'persentase' => $this->input->post('potongan_11_15', true),
+                    ),
+                    array(
+                        'mulai_menit' => 16,
+                        'sampai_menit' => 20,
+                        'persentase' => $this->input->post('potongan_16_20', true),
+                    ),
+                ),
             ),
         );
 
         if ($config['nama_perusahaan'] === '' || $config['alamat'] === '') {
-            return $this->output->set_status_header(422)->set_output(json_encode(array(
+            return $this->respond_save(422, array(
                 'success' => false,
                 'message' => 'Nama perusahaan dan alamat wajib diisi.',
-            )));
+            ));
         }
 
-        foreach ($config['rule_absensi'] as $name => $value) {
+        foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
+            $value = $config['rule_absensi'][$name];
             if ($value === '' || filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value < 0 || (int) $value > 24) {
-                return $this->output->set_status_header(422)->set_output(json_encode(array(
+                return $this->respond_save(422, array(
                     'success' => false,
                     'message' => 'Jam aturan absensi harus berupa angka 0 sampai 24.',
-                )));
+                ));
             }
             $config['rule_absensi'][$name] = (int) $value;
         }
 
-        if (file_put_contents($this->config_path, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX) === false) {
-            return $this->output->set_status_header(500)->set_output(json_encode(array(
+        if ($config['rule_absensi']['akhir_masuk'] >= $config['rule_absensi']['mulai_pulang']) {
+            return $this->respond_save(422, array(
                 'success' => false,
-                'message' => 'app_config.json tidak dapat disimpan. Periksa izin folder config.',
-            )));
+                'message' => 'Akhir masuk harus lebih kecil dari mulai pulang.',
+            ));
         }
 
-        return $this->output->set_output(json_encode(array(
+        foreach ($config['rule_absensi']['potongan_keterlambatan'] as $index => $rule) {
+            if ($rule['persentase'] === '' || filter_var($rule['persentase'], FILTER_VALIDATE_FLOAT) === false || (float) $rule['persentase'] < 0 || (float) $rule['persentase'] > 100) {
+                return $this->respond_save(422, array(
+                    'success' => false,
+                    'message' => 'Persentase potongan keterlambatan harus berupa angka 0 sampai 100.',
+                ));
+            }
+            $config['rule_absensi']['potongan_keterlambatan'][$index]['persentase'] = (float) $rule['persentase'];
+        }
+
+        if (file_put_contents($this->config_path, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX) === false) {
+            return $this->respond_save(500, array(
+                'success' => false,
+                'message' => 'app_config.json tidak dapat disimpan. Periksa izin folder config.',
+            ));
+        }
+
+        return $this->respond_save(200, array(
             'success' => true,
             'message' => 'Konfigurasi aplikasi berhasil disimpan.',
-        )));
+        ));
+    }
+
+    private function respond_save($status, array $payload)
+    {
+        if ($this->input->is_ajax_request()) {
+            return $this->output->set_status_header($status)->set_output(json_encode($payload));
+        }
+
+        $this->session->set_flashdata($payload['success'] ? 'success' : 'error', $payload['message']);
+        redirect('admin/app-config');
     }
 
     private function read_config()
@@ -82,6 +127,11 @@ class App_config extends CI_Controller
                 'akhir_masuk' => 9,
                 'mulai_pulang' => 17,
                 'akhir_pulang' => 24,
+                'potongan_keterlambatan' => array(
+                    array('mulai_menit' => 6, 'sampai_menit' => 10, 'persentase' => 1),
+                    array('mulai_menit' => 11, 'sampai_menit' => 15, 'persentase' => 2),
+                    array('mulai_menit' => 16, 'sampai_menit' => 20, 'persentase' => 3),
+                ),
             ),
         );
 

@@ -77,6 +77,7 @@ $route['api/v1/fingerprint-templates/save'] = 'api/fingerprint_templates/save';
 $route['api/v1/fingerprint-templates/delete'] = 'api/fingerprint_templates/delete';
 $route['admin/employees'] = 'admin/employees/index';
 $route['admin/employees/save'] = 'admin/employees/save';
+$route['admin/employees/delete/(:num)'] = 'admin/employees/delete/$1';
 $route['admin/employees/detail/(:num)'] = 'admin/employees/detail/$1';
 $route['admin/employees/salary-details/(:num)'] = 'admin/employees/salary_details/$1';
 $route['admin/employees/salary-details/(:num)/save'] = 'admin/employees/save_salary_details/$1';

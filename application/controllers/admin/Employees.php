@@ -25,7 +25,7 @@ class Employees extends CI_Controller
         foreach ($fingerprint_counts as $row) {
             $fingerprint_counts_by_employee[(int) $row['employee_id']] = (int) $row['fingerprint_count'];
         }
-        $employees = $this->Employee_model->all();
+        $employees = $this->Employee_model->all(true);
         foreach ($employees as &$employee) {
             $employee['fingerprint_count'] = $fingerprint_counts_by_employee[(int) $employee['id']] ?? 0;
         }
@@ -51,16 +51,32 @@ class Employees extends CI_Controller
         $employee_code = trim($this->input->post('employee_code', true));
         $name = trim($this->input->post('name', true));
         $nik = trim($this->input->post('nik', true));
+        $id = (int) $this->input->post('id');
+        $employee = $id ? $this->Employee_model->find_by_id($id) : null;
 
-        if ($this->Employee_model->exists_by_code($employee_code)) {
+        if ($id && !$employee) {
+            return $this->output->set_status_header(404)->set_output(json_encode(array('success' => false, 'message' => 'Karyawan tidak ditemukan.')));
+        }
+
+        $this->db->where('LOWER(employee_code) =', strtolower($employee_code));
+        if ($id) {
+            $this->db->where('id !=', $id);
+        }
+        if ($this->db->count_all_results('employees')) {
             return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => 'Employee Code sudah terdaftar.')));
         }
 
-        if ($nik !== '' && $this->Employee_model->exists_by_nik($nik)) {
-            return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => 'No. KTP sudah terdaftar.')));
+        if ($nik !== '') {
+            $this->db->where('LOWER(nik) =', strtolower($nik));
+            if ($id) {
+                $this->db->where('id !=', $id);
+            }
+            if ($this->db->count_all_results('employees')) {
+                return $this->output->set_status_header(422)->set_output(json_encode(array('success' => false, 'message' => 'No. KTP sudah terdaftar.')));
+            }
         }
 
-        $id = $this->Employee_model->save(array(
+        $saved_id = $this->Employee_model->save(array(
             'employee_code' => $employee_code,
             'name' => $name,
             'nik' => $nik !== '' ? $nik : null,
@@ -72,8 +88,27 @@ class Employees extends CI_Controller
             'position_name' => trim($this->input->post('position_name', true)),
             'department_name' => trim($this->input->post('department_name', true)),
             'employment_status' => $this->input->post('employment_status', true) ?: 'TETAP',
+        ), $id ?: null);
+        return $this->output->set_output(json_encode(array('success' => true, 'id' => $saved_id, 'updated' => (bool) $id)));
+    }
+
+    public function delete($employee_id)
+    {
+        $this->output->set_content_type('application/json');
+        $employee = $this->Employee_model->find_by_id($employee_id);
+        if (!$employee) {
+            return $this->output->set_status_header(404)->set_output(json_encode(array('success' => false, 'message' => 'Karyawan tidak ditemukan.')));
+        }
+
+        $this->db->where('id', (int) $employee_id)->update('employees', array(
+            'is_active' => 0,
+            'employment_status' => 'NONAKTIF',
+            'exit_date' => date('Y-m-d'),
         ));
-        return $this->output->set_output(json_encode(array('success' => true, 'id' => $id)));
+        if (!$this->db->affected_rows() && (int) $employee['is_active'] === 1) {
+            return $this->output->set_status_header(500)->set_output(json_encode(array('success' => false, 'message' => 'Karyawan gagal dinonaktifkan.')));
+        }
+        return $this->output->set_output(json_encode(array('success' => true)));
     }
 
     public function salary_details($employee_id)

@@ -1,10 +1,27 @@
 {
-	"nama_perusahaan": "PT LOGAM MURNI",
-	"alamat": "JL. Jend Ahmad Yani",
+	"nama_perusahaan": "PT LOGAM MURNI 2",
+	"alamat": "JL. Jend Ahmad Yani2",
 	"rule_absensi": {
-		"mulai_masuk": 6,
-		"akhir_masuk": 9,
+		"mulai_masuk": 12,
+		"akhir_masuk": 14,
 		"mulai_pulang": 17,
-		"akhir_pulang": 24
+		"akhir_pulang": 24,
+		"potongan_keterlambatan": [
+			{
+				"mulai_menit": 6,
+				"sampai_menit": 10,
+				"persentase": 1
+			},
+			{
+				"mulai_menit": 11,
+				"sampai_menit": 15,
+				"persentase": 2
+			},
+			{
+				"mulai_menit": 16,
+				"sampai_menit": 20,
+				"persentase": 3
+			}
+		]
 	}
 }

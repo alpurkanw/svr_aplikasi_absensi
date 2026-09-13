@@ -36,7 +36,7 @@
                                         <tr>
                                             <td>nama_perusahaan</td>
                                             <td><?= html_escape($config['nama_perusahaan']) ?></td>
-                                            <td rowspan="6" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
+                                            <td rowspan="9" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
                                         </tr>
                                         <tr>
                                             <td>alamat</td>
@@ -58,6 +58,12 @@
                                             <td>rule_absensi.akhir_pulang</td>
                                             <td><?= html_escape($config['rule_absensi']['akhir_pulang']) ?>:00</td>
                                         </tr>
+                                        <?php foreach ($config['rule_absensi']['potongan_keterlambatan'] as $rule): ?>
+                                            <tr>
+                                                <td>rule_absensi.potongan_keterlambatan.<?= (int) $rule['mulai_menit'] ?>_<?= (int) $rule['sampai_menit'] ?></td>
+                                                <td><?= html_escape($rule['persentase']) ?>%</td>
+                                            </tr>
+                                        <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -71,7 +77,7 @@
     <div class="modal fade" id="appConfigModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form id="appConfigForm">
+                <form id="appConfigForm" method="post" action="<?= site_url('admin/app-config/save') ?>">
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Konfigurasi Aplikasi</h5>
                         <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
@@ -86,6 +92,12 @@
                             <div class="form-group col-md-6"><label>Mulai pulang</label><input type="number" name="mulai_pulang" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['mulai_pulang']) ?>" required></div>
                             <div class="form-group col-md-6"><label>Akhir pulang</label><input type="number" name="akhir_pulang" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['akhir_pulang']) ?>" required></div>
                         </div>
+                        <h6 class="font-weight-bold text-gray-800 mt-4">Potongan keterlambatan</h6>
+                        <div class="form-row">
+                            <div class="form-group col-md-4"><label>Telat 6-10 menit (%)</label><input type="number" name="potongan_6_10" class="form-control" min="0" max="100" step="0.01" value="<?= html_escape($config['rule_absensi']['potongan_keterlambatan'][0]['persentase']) ?>" required></div>
+                            <div class="form-group col-md-4"><label>Telat 11-15 menit (%)</label><input type="number" name="potongan_11_15" class="form-control" min="0" max="100" step="0.01" value="<?= html_escape($config['rule_absensi']['potongan_keterlambatan'][1]['persentase']) ?>" required></div>
+                            <div class="form-group col-md-4"><label>Telat 16-20 menit (%)</label><input type="number" name="potongan_16_20" class="form-control" min="0" max="100" step="0.01" value="<?= html_escape($config['rule_absensi']['potongan_keterlambatan'][2]['persentase']) ?>" required></div>
+                        </div>
                     </div>
                     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button><button class="btn btn-primary" type="submit">Simpan</button></div>
                 </form>
@@ -99,6 +111,20 @@
     <script src="<?= base_url('assets/adminsb/vendor/datatables/dataTables.bootstrap4.min.js') ?>"></script>
     <script src="<?= base_url('assets/adminsb/js/sb-admin-2.min.js') ?>"></script>
     <script>
+        <?php if ($this->session->flashdata('success')): ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: <?= json_encode($this->session->flashdata('success')) ?>
+            });
+        <?php elseif ($this->session->flashdata('error')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: <?= json_encode($this->session->flashdata('error')) ?>
+            });
+        <?php endif; ?>
+
         $('#appConfigTable').DataTable({
             paging: false,
             info: false,
@@ -110,6 +136,12 @@
 
         $('#appConfigForm').on('submit', function(event) {
             event.preventDefault();
+            var akhirMasuk = Number($('[name="akhir_masuk"]').val());
+            var mulaiPulang = Number($('[name="mulai_pulang"]').val());
+            if (akhirMasuk >= mulaiPulang) {
+                Swal.fire('Gagal', 'Akhir masuk harus lebih kecil dari mulai pulang.', 'error');
+                return;
+            }
             $.post('<?= site_url('admin/app-config/save') ?>', $(this).serialize(), function(response) {
                 Swal.fire(response.success ? 'Berhasil' : 'Gagal', response.message, response.success ? 'success' : 'error').then(function() {
                     if (response.success) window.location.reload();

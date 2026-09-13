@@ -32,6 +32,7 @@
                                             <th>Jabatan</th>
                                             <th>Departemen</th>
                                             <th>Status Fingerprint</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -46,6 +47,10 @@
                                                     <?php else: ?>
                                                         <span class="badge badge-secondary">Belum ada fingerprint</span>
                                                     <?php endif; ?>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <button type="button" class="btn btn-sm btn-warning btn-edit-karyawan" data-id="<?= (int) $employee['id'] ?>"><i class="fas fa-edit"></i> Edit</button>
+                                                    <button type="button" class="btn btn-sm btn-danger btn-delete-karyawan" data-id="<?= (int) $employee['id'] ?>" data-name="<?= html_escape($employee['name']) ?>"><i class="fas fa-trash"></i> Hapus</button>
                                                 </td>
                                             </tr><?php endforeach; ?>
                                     </tbody>
@@ -74,9 +79,10 @@
             <div class="modal-content">
                 <form method="post" action="<?= site_url('admin/employees/save') ?>" id="formTambahKaryawan">
                     <div class="modal-header">
-                        <h5 class="modal-title">Tambah Karyawan</h5><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        <h5 class="modal-title" id="judulFormKaryawan">Tambah Karyawan</h5><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                     </div>
                     <div class="modal-body">
+                        <input type="hidden" name="id" id="employeeId">
                         <div class="form-row">
                             <div class="form-group col-md-6"><label>Employee Code</label><input required maxlength="100" name="employee_code" class="form-control"></div>
                             <div class="form-group col-md-6"><label>Nama</label><input required maxlength="150" name="name" class="form-control"></div>
@@ -99,7 +105,7 @@
                                 </select></div>
                         </div>
                     </div>
-                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button><button class="btn btn-success" type="submit">Simpan</button></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button><button class="btn btn-success" type="submit" id="btnSimpanKaryawan">Simpan</button></div>
                 </form>
             </div>
         </div>
@@ -239,6 +245,7 @@
             event.preventDefault();
             var form = this;
             var submitButton = $(form).find('button[type="submit"]');
+            var isEdit = $('#employeeId').val() !== '';
             submitButton.prop('disabled', true);
             $.ajax({
                 url: form.action,
@@ -251,7 +258,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
-                        text: 'Karyawan berhasil ditambahkan.',
+                        text: isEdit ? 'Data karyawan berhasil diperbarui.' : 'Karyawan berhasil ditambahkan.',
                         confirmButtonText: 'OK'
                     }).then(function() {
                         window.location.reload();
@@ -261,10 +268,10 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',
-                    text: response.message || 'Karyawan gagal ditambahkan.'
+                    text: response.message || (isEdit ? 'Data karyawan gagal diperbarui.' : 'Karyawan gagal ditambahkan.')
                 });
             }).fail(function(xhr) {
-                var message = 'Karyawan gagal ditambahkan.';
+                var message = isEdit ? 'Data karyawan gagal diperbarui.' : 'Karyawan gagal ditambahkan.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     message = $('<div>').html(xhr.responseJSON.message).text();
                 }
@@ -275,6 +282,84 @@
                 });
             }).always(function() {
                 submitButton.prop('disabled', false);
+            });
+        });
+
+        function resetEmployeeForm() {
+            $('#formTambahKaryawan')[0].reset();
+            $('#employeeId').val('');
+            $('#judulFormKaryawan').text('Tambah Karyawan');
+            $('#btnSimpanKaryawan').text('Simpan');
+        }
+
+        $('.btn-edit-karyawan').on('click', function() {
+            var id = $(this).data('id');
+            $.getJSON('<?= site_url('admin/employees/detail') ?>/' + id, function(response) {
+                var employee = response.data.employee;
+                $('#employeeId').val(id);
+                $('#formTambahKaryawan [name="employee_code"]').val(employee.employee_code);
+                $('#formTambahKaryawan [name="name"]').val(employee.name);
+                $('#formTambahKaryawan [name="nik"]').val(employee.nik === '-' ? '' : employee.nik);
+                $('#formTambahKaryawan [name="gender"]').val(employee.gender === '-' ? '' : employee.gender);
+                $('#formTambahKaryawan [name="birth_place"]').val(employee.birth_place === '-' ? '' : employee.birth_place);
+                $('#formTambahKaryawan [name="birth_date"]').val(employee.birth_date === '-' ? '' : employee.birth_date);
+                $('#formTambahKaryawan [name="phone"]').val(employee.phone === '-' ? '' : employee.phone);
+                $('#formTambahKaryawan [name="address"]').val(employee.address === '-' ? '' : employee.address);
+                $('#formTambahKaryawan [name="position_name"]').val(employee.position_name === '-' ? '' : employee.position_name);
+                $('#formTambahKaryawan [name="department_name"]').val(employee.department_name === '-' ? '' : employee.department_name);
+                $('#formTambahKaryawan [name="employment_status"]').val(employee.employment_status);
+                $('#judulFormKaryawan').text('Edit Karyawan');
+                $('#btnSimpanKaryawan').text('Perbarui');
+                $('#modalTambahKaryawan').modal('show');
+            }).fail(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Data karyawan tidak dapat dimuat.'
+                });
+            });
+        });
+
+        $('#modalTambahKaryawan').on('hidden.bs.modal', resetEmployeeForm);
+
+        $('.btn-delete-karyawan').on('click', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Nonaktifkan karyawan?',
+                text: 'Karyawan ' + name + ' akan disembunyikan dari daftar aktif. Histori absensi dan payroll tetap aman.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, nonaktifkan',
+                cancelButtonText: 'Batal'
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+                $.post('<?= site_url('admin/employees/delete') ?>/' + id, {}, function(response) {
+                    if (!response.success) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message || 'Karyawan gagal dinonaktifkan.'
+                        });
+                        return;
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Karyawan berhasil dinonaktifkan.'
+                    }).then(function() {
+                        window.location.reload();
+                    });
+                }, 'json').fail(function(xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Karyawan gagal dinonaktifkan.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: message
+                    });
+                });
             });
         });
 
