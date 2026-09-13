@@ -27,11 +27,19 @@ class Attendance_monthly extends CI_Controller
         if ($month === $current_month) {
             $calculation_end = new DateTime('tomorrow 00:00:00');
         }
-        $workdays = $this->count_workdays($period_start, $calculation_end);
-        $entry_start = (int) $rules['mulai_masuk'];
-        $entry_end = (int) $rules['akhir_masuk'];
-        $exit_start = (int) $rules['mulai_pulang'];
-        $exit_end = (int) $rules['akhir_pulang'];
+        $holiday_rows = $this->db->where('is_active', 1)
+            ->where('holiday_date >=', $period_start->format('Y-m-d'))
+            ->where('holiday_date <', $period_end->format('Y-m-d'))
+            ->get('holidays')->result_array();
+        $holidays = array();
+        foreach ($holiday_rows as $holiday) {
+            $holidays[$holiday['holiday_date']] = true;
+        }
+        $workdays = $this->count_workdays($period_start, $calculation_end, $holidays);
+        $entry_start = $this->normalize_time($rules['mulai_masuk']);
+        $entry_end = $this->normalize_time($rules['akhir_masuk']);
+        $exit_start = $this->normalize_time($rules['mulai_pulang']);
+        $exit_end = $this->normalize_time($rules['akhir_pulang']);
 
         $employees = $this->db->select('employee_code, name')->from('employees')
             ->where('is_active', 1)->order_by('name', 'ASC')->get()->result_array();
@@ -50,11 +58,15 @@ class Attendance_monthly extends CI_Controller
                 $daily[$code][$day] = array('check_in' => null, 'check_out' => null);
             }
 
-            $hour = (int) $timestamp->format('G');
-            if ($hour >= $entry_start && $hour <= $entry_end && $daily[$code][$day]['check_in'] === null) {
+            $entry_window_start = new DateTime($day . ' ' . $entry_start);
+            $entry_window_start->modify('-2 hours');
+            $entry_window_end = new DateTime($day . ' ' . $entry_end);
+            $exit_window_start = new DateTime($day . ' ' . $exit_start);
+            $exit_window_end = new DateTime($day . ' ' . $exit_end);
+            if ($timestamp >= $entry_window_start && $timestamp <= $entry_window_end && $daily[$code][$day]['check_in'] === null) {
                 $daily[$code][$day]['check_in'] = $timestamp;
             }
-            if ($hour >= $exit_start && $hour < $exit_end) {
+            if ($timestamp >= $exit_window_start && $timestamp < $exit_window_end) {
                 $daily[$code][$day]['check_out'] = $timestamp;
             }
         }
@@ -78,6 +90,9 @@ class Attendance_monthly extends CI_Controller
                     continue;
                 }
                 $date = $day->format('Y-m-d');
+                if (isset($holidays[$date])) {
+                    continue;
+                }
                 $attendance = isset($daily[$code][$date]) ? $daily[$code][$date] : null;
                 if (!$attendance || $attendance['check_in'] === null) {
                     $summary['tidak_hadir']++;
@@ -85,13 +100,15 @@ class Attendance_monthly extends CI_Controller
                 }
 
                 $summary['hadir']++;
-                $late_minutes = max(0, ((int) $attendance['check_in']->format('G') * 60 + (int) $attendance['check_in']->format('i')) - ($entry_end * 60));
+                $entry_time = new DateTime($date . ' ' . $entry_start);
+                $late_minutes = max(0, (int) floor(($attendance['check_in']->getTimestamp() - $entry_time->getTimestamp()) / 60));
                 if ($late_minutes > 0) {
                     $summary['terlambat']++;
                     $summary['total_menit_terlambat'] += $late_minutes;
                 }
                 if ($attendance['check_out'] !== null) {
-                    $early_minutes = max(0, ($exit_start * 60) - ((int) $attendance['check_out']->format('G') * 60 + (int) $attendance['check_out']->format('i')));
+                    $exit_time = new DateTime($date . ' ' . $exit_start);
+                    $early_minutes = max(0, (int) floor(($exit_time->getTimestamp() - $attendance['check_out']->getTimestamp()) / 60));
                     if ($early_minutes > 0) {
                         $summary['pulang_cepat']++;
                         $summary['total_menit_pulang_cepat'] += $early_minutes;
@@ -110,11 +127,11 @@ class Attendance_monthly extends CI_Controller
         ));
     }
 
-    private function count_workdays(DateTime $start, DateTime $end)
+    private function count_workdays(DateTime $start, DateTime $end, array $holidays = array())
     {
         $total = 0;
         for ($day = clone $start; $day < $end; $day->modify('+1 day')) {
-            if ((int) $day->format('N') <= 5) {
+            if ((int) $day->format('N') <= 5 && !isset($holidays[$day->format('Y-m-d')])) {
                 $total++;
             }
         }
@@ -127,10 +144,25 @@ class Attendance_monthly extends CI_Controller
             'mulai_masuk' => 6,
             'akhir_masuk' => 9,
             'mulai_pulang' => 17,
-            'akhir_pulang' => 24,
+            'akhir_pulang' => '24:00',
         ));
         $path = APPPATH . 'config/app_config.json';
         $config = is_file($path) ? json_decode(file_get_contents($path), true) : array();
-        return array_replace_recursive($defaults, is_array($config) ? $config : array());
+        $config = array_replace_recursive($defaults, is_array($config) ? $config : array());
+        foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
+            $config['rule_absensi'][$name] = $this->normalize_time($config['rule_absensi'][$name]);
+        }
+        return $config;
+    }
+
+    private function normalize_time($value)
+    {
+        if (is_int($value) || (is_string($value) && preg_match('/^\d{1,2}$/', trim($value)))) {
+            return sprintf('%02d:00', (int) $value);
+        }
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', trim((string) $value), $matches)) {
+            return sprintf('%02d:%02d', (int) $matches[1], (int) $matches[2]);
+        }
+        return '00:00';
     }
 }

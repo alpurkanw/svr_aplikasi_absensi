@@ -15,6 +15,24 @@ class Employees extends CI_Controller
     public function index()
     {
         $components = $this->db->where('is_active', 1)->order_by('component_type', 'ASC')->order_by('id', 'ASC')->get('payroll_components')->result_array();
+        $total_components = count($components);
+        $salary_totals = $this->db
+            ->select('employee_id, COUNT(DISTINCT component_id) AS component_count, SUM(amount) AS total_salary', false)
+            ->from('employee_payroll_components')
+            ->join('payroll_components', 'payroll_components.id = employee_payroll_components.component_id')
+            ->where('payroll_components.component_type', 'EARNING')
+            ->where('payroll_components.is_active', 1)
+            ->where('effective_from <=', date('Y-m-d'))
+            ->group_start()
+            ->where('effective_until IS NULL', null, false)
+            ->or_where('effective_until >=', date('Y-m-d'))
+            ->group_end()
+            ->group_by('employee_id')
+            ->get()->result_array();
+        $salary_totals_by_employee = array();
+        foreach ($salary_totals as $salary_total) {
+            $salary_totals_by_employee[(int) $salary_total['employee_id']] = $salary_total;
+        }
         $fingerprint_counts = $this->db
             ->select('employee_id, COUNT(*) AS fingerprint_count')
             ->where('is_active', 1)
@@ -28,6 +46,9 @@ class Employees extends CI_Controller
         $employees = $this->Employee_model->all(true);
         foreach ($employees as &$employee) {
             $employee['fingerprint_count'] = $fingerprint_counts_by_employee[(int) $employee['id']] ?? 0;
+            $salary_total = $salary_totals_by_employee[(int) $employee['id']] ?? array('component_count' => 0, 'total_salary' => 0);
+            $employee['salary_component_count'] = (int) $salary_total['component_count'];
+            $employee['total_salary'] = (float) $salary_total['total_salary'];
         }
         unset($employee);
 
@@ -35,6 +56,7 @@ class Employees extends CI_Controller
             'title' => 'Data Karyawan',
             'employees' => $employees,
             'components' => $components,
+            'total_components' => $total_components,
         ));
     }
 
@@ -109,6 +131,32 @@ class Employees extends CI_Controller
             return $this->output->set_status_header(500)->set_output(json_encode(array('success' => false, 'message' => 'Karyawan gagal dinonaktifkan.')));
         }
         return $this->output->set_output(json_encode(array('success' => true)));
+    }
+
+    public function detail_page($employee_id)
+    {
+        $employee = $this->Employee_model->find_by_id($employee_id);
+        if (!$employee || (int) $employee['is_active'] !== 1) {
+            show_404();
+        }
+
+        $fingerprints = $this->db->select('finger_slot, device_sn')
+            ->where('employee_id', (int) $employee_id)
+            ->where('is_active', 1)
+            ->order_by('finger_slot', 'ASC')
+            ->get('employee_fingerprint_templates')->result_array();
+        $components = $this->Employee_model->salary_details_with_names($employee_id);
+
+        $this->load->view('admin/employees/detail', array(
+            'title' => 'Detail Karyawan',
+            'employee' => $employee,
+            'fingerprints' => $fingerprints,
+            'salary_components' => $components,
+            'total_salary' => array_sum(array_map(function ($component) {
+                return $component['component_type'] === 'EARNING' ? (float) $component['amount'] : 0;
+            }, $components)),
+            'total_components' => $this->db->where('is_active', 1)->count_all_results('payroll_components'),
+        ));
     }
 
     public function salary_details($employee_id)

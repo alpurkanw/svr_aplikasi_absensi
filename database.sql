@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS `employees` (
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     `bank_account_number` VARCHAR(100) NULL,
     `bank_name` VARCHAR(100) NULL,
-    `base_salary` DECIMAL(15,2) NOT NULL DEFAULT 0,
     `payroll_status` TINYINT(1) NOT NULL DEFAULT 1,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -101,6 +100,19 @@ CREATE TABLE IF NOT EXISTS `employee_shift_assignments` (
     KEY `idx_assignment_employee_date` (`employee_id`, `effective_from`, `effective_until`),
     CONSTRAINT `fk_assignment_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
     CONSTRAINT `fk_assignment_shift` FOREIGN KEY (`shift_id`) REFERENCES `work_shifts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `holidays` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `holiday_date` DATE NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `holiday_type` ENUM('NASIONAL','CUTI_BERSAMA','PERUSAHAAN') NOT NULL DEFAULT 'PERUSAHAAN',
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_holiday_date` (`holiday_date`),
+    KEY `idx_holidays_active_date` (`is_active`, `holiday_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `attendance_daily` (

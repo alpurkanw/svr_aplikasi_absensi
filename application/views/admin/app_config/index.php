@@ -36,27 +36,31 @@
                                         <tr>
                                             <td>nama_perusahaan</td>
                                             <td><?= html_escape($config['nama_perusahaan']) ?></td>
-                                            <td rowspan="9" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
+                                            <td rowspan="10" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
                                         </tr>
                                         <tr>
                                             <td>alamat</td>
                                             <td><?= html_escape($config['alamat']) ?></td>
                                         </tr>
                                         <tr>
-                                            <td>rule_absensi.mulai_masuk</td>
-                                            <td><?= html_escape($config['rule_absensi']['mulai_masuk']) ?>:00</td>
+                                            <td>potong_gapok</td>
+                                            <td><?= $config['potong_gapok'] ? 'true' : 'false' ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td>rule_absensi.mulai_masuk <br>Variabel ini diisi dengan jam Masuk Kantor, <br>Dari sini juga akan mulai dihitung keterlambatan</td>
+                                            <td><?= html_escape($config['rule_absensi']['mulai_masuk']) ?></td>
                                         </tr>
                                         <tr>
                                             <td>rule_absensi.akhir_masuk</td>
-                                            <td><?= html_escape($config['rule_absensi']['akhir_masuk']) ?>:00</td>
+                                            <td><?= html_escape($config['rule_absensi']['akhir_masuk']) ?></td>
                                         </tr>
                                         <tr>
                                             <td>rule_absensi.mulai_pulang</td>
-                                            <td><?= html_escape($config['rule_absensi']['mulai_pulang']) ?>:00</td>
+                                            <td><?= html_escape($config['rule_absensi']['mulai_pulang']) ?></td>
                                         </tr>
                                         <tr>
                                             <td>rule_absensi.akhir_pulang</td>
-                                            <td><?= html_escape($config['rule_absensi']['akhir_pulang']) ?>:00</td>
+                                            <td><?= html_escape($config['rule_absensi']['akhir_pulang']) ?></td>
                                         </tr>
                                         <?php foreach ($config['rule_absensi']['potongan_keterlambatan'] as $rule): ?>
                                             <tr>
@@ -85,12 +89,13 @@
                     <div class="modal-body">
                         <div class="form-group"><label>Nama perusahaan</label><input type="text" name="nama_perusahaan" class="form-control" value="<?= html_escape($config['nama_perusahaan']) ?>" maxlength="150" required></div>
                         <div class="form-group"><label>Alamat</label><input type="text" name="alamat" class="form-control" value="<?= html_escape($config['alamat']) ?>" maxlength="255" required></div>
+                        <div class="form-group"><label>Dasar potongan gaji pokok</label><select name="potong_gapok" class="form-control"><option value="true" <?= $config['potong_gapok'] ? 'selected' : '' ?>>true</option><option value="false" <?= !$config['potong_gapok'] ? 'selected' : '' ?>>false</option></select><small class="form-text text-muted">true: hanya Gaji Pokok. false: Gaji Pokok dan komponen earning FIXED sebagai penambah.</small></div>
                         <h6 class="font-weight-bold text-gray-800 mt-4">Rule absensi</h6>
                         <div class="form-row">
-                            <div class="form-group col-md-6"><label>Mulai masuk</label><input type="number" name="mulai_masuk" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['mulai_masuk']) ?>" required></div>
-                            <div class="form-group col-md-6"><label>Akhir masuk</label><input type="number" name="akhir_masuk" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['akhir_masuk']) ?>" required></div>
-                            <div class="form-group col-md-6"><label>Mulai pulang</label><input type="number" name="mulai_pulang" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['mulai_pulang']) ?>" required></div>
-                            <div class="form-group col-md-6"><label>Akhir pulang</label><input type="number" name="akhir_pulang" class="form-control" min="0" max="24" value="<?= html_escape($config['rule_absensi']['akhir_pulang']) ?>" required></div>
+                            <div class="form-group col-md-6"><label>Mulai masuk</label><input type="text" name="mulai_masuk" class="form-control" pattern="(?:[01]\d|2[0-4]):[0-5]\d" placeholder="HH:MM" value="<?= html_escape($config['rule_absensi']['mulai_masuk']) ?>" required></div>
+                            <div class="form-group col-md-6"><label>Akhir masuk</label><input type="text" name="akhir_masuk" class="form-control" pattern="(?:[01]\d|2[0-4]):[0-5]\d" placeholder="HH:MM" value="<?= html_escape($config['rule_absensi']['akhir_masuk']) ?>" required></div>
+                            <div class="form-group col-md-6"><label>Mulai pulang</label><input type="text" name="mulai_pulang" class="form-control" pattern="(?:[01]\d|2[0-4]):[0-5]\d" placeholder="HH:MM" value="<?= html_escape($config['rule_absensi']['mulai_pulang']) ?>" required></div>
+                            <div class="form-group col-md-6"><label>Akhir pulang</label><input type="text" name="akhir_pulang" class="form-control" pattern="(?:[01]\d|2[0-4]):[0-5]\d" placeholder="HH:MM" value="<?= html_escape($config['rule_absensi']['akhir_pulang']) ?>" required></div>
                         </div>
                         <h6 class="font-weight-bold text-gray-800 mt-4">Potongan keterlambatan</h6>
                         <div class="form-row">
@@ -136,9 +141,11 @@
 
         $('#appConfigForm').on('submit', function(event) {
             event.preventDefault();
-            var akhirMasuk = Number($('[name="akhir_masuk"]').val());
-            var mulaiPulang = Number($('[name="mulai_pulang"]').val());
-            if (akhirMasuk >= mulaiPulang) {
+            var akhirMasuk = $('[name="akhir_masuk"]').val().split(':');
+            var mulaiPulang = $('[name="mulai_pulang"]').val().split(':');
+            var akhirMasukMenit = (Number(akhirMasuk[0]) * 60) + Number(akhirMasuk[1]);
+            var mulaiPulangMenit = (Number(mulaiPulang[0]) * 60) + Number(mulaiPulang[1]);
+            if (akhirMasukMenit >= mulaiPulangMenit) {
                 Swal.fire('Gagal', 'Akhir masuk harus lebih kecil dari mulai pulang.', 'error');
                 return;
             }

@@ -2,18 +2,18 @@ USE payroll_db;
 SET FOREIGN_KEY_CHECKS = 1;
 START TRANSACTION;
 
-INSERT INTO employees (employee_code, nik, name, email, join_date, position_name, department_name, employment_status, is_active, bank_account_number, bank_name, base_salary, payroll_status) VALUES
-('EMP-0001','3270000000000001','Andi Pratama','emp0001@example.test','2025-01-01','Staff Finance','Finance','TETAP',1,'12345678901','BCA',6250000,1),
-('EMP-0002','3270000000000002','Budi Santoso','emp0002@example.test','2025-01-01','Staff Operasional','Operasional','TETAP',1,'12345678902','BCA',6500000,1),
-('EMP-0003','3270000000000003','Citra Lestari','emp0003@example.test','2025-01-01','Staff HR','HR','KONTRAK',1,'12345678903','BCA',6750000,1),
-('EMP-0004','3270000000000004','Dedi Kurniawan','emp0004@example.test','2025-01-01','Staff IT','IT','TETAP',1,'12345678904','BCA',7000000,1),
-('EMP-0005','3270000000000005','Eka Putri','emp0005@example.test','2025-01-01','Staff Operasional','Operasional','HARIAN',1,'12345678905','BCA',7250000,1),
-('EMP-0006','3270000000000006','Fajar Hidayat','emp0006@example.test','2025-01-01','Staff Sales','Sales','TETAP',1,'12345678906','BCA',7500000,1),
-('EMP-0007','3270000000000007','Gita Maharani','emp0007@example.test','2025-01-01','Staff Finance','Finance','KONTRAK',1,'12345678907','BCA',7750000,1),
-('EMP-0008','3270000000000008','Hendra Wijaya','emp0008@example.test','2025-01-01','Staff Gudang','Gudang','TETAP',1,'12345678908','BCA',8000000,1),
-('EMP-0009','3270000000000009','Indah Permata','emp0009@example.test','2025-01-01','Staff HR','HR','TETAP',1,'12345678909','BCA',8250000,1),
-('EMP-0010','3270000000010000','Joko Susilo','emp0010@example.test','2025-01-01','Staff Sales','Sales','HARIAN',1,'12345678910','BCA',8500000,1)
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), department_name=VALUES(department_name), employment_status=VALUES(employment_status), base_salary=VALUES(base_salary), is_active=1;
+INSERT INTO employees (employee_code, nik, name, email, join_date, position_name, department_name, employment_status, is_active, bank_account_number, bank_name, payroll_status) VALUES
+('EMP-0001','3270000000000001','Andi Pratama','emp0001@example.test','2025-01-01','Staff Finance','Finance','TETAP',1,'12345678901','BCA',1),
+('EMP-0002','3270000000000002','Budi Santoso','emp0002@example.test','2025-01-01','Staff Operasional','Operasional','TETAP',1,'12345678902','BCA',1),
+('EMP-0003','3270000000000003','Citra Lestari','emp0003@example.test','2025-01-01','Staff HR','HR','KONTRAK',1,'12345678903','BCA',1),
+('EMP-0004','3270000000000004','Dedi Kurniawan','emp0004@example.test','2025-01-01','Staff IT','IT','TETAP',1,'12345678904','BCA',1),
+('EMP-0005','3270000000000005','Eka Putri','emp0005@example.test','2025-01-01','Staff Operasional','Operasional','HARIAN',1,'12345678905','BCA',1),
+('EMP-0006','3270000000000006','Fajar Hidayat','emp0006@example.test','2025-01-01','Staff Sales','Sales','TETAP',1,'12345678906','BCA',1),
+('EMP-0007','3270000000000007','Gita Maharani','emp0007@example.test','2025-01-01','Staff Finance','Finance','KONTRAK',1,'12345678907','BCA',1),
+('EMP-0008','3270000000000008','Hendra Wijaya','emp0008@example.test','2025-01-01','Staff Gudang','Gudang','TETAP',1,'12345678908','BCA',1),
+('EMP-0009','3270000000000009','Indah Permata','emp0009@example.test','2025-01-01','Staff HR','HR','TETAP',1,'12345678909','BCA',1),
+('EMP-0010','3270000000010000','Joko Susilo','emp0010@example.test','2025-01-01','Staff Sales','Sales','HARIAN',1,'12345678910','BCA',1)
+ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), department_name=VALUES(department_name), employment_status=VALUES(employment_status), is_active=1;
 
 INSERT INTO work_shifts (name, check_in_time, check_out_time, late_tolerance_minutes, minimum_overtime_minutes, early_leave_enabled, work_days)
 SELECT 'Shift Normal','08:00:00','17:00:00',10,30,1,'1,2,3,4,5'
@@ -92,8 +92,19 @@ INSERT INTO payroll_periods (name,period_start,period_end,status,calculated_at)
 SELECT 'Payroll Juli 2026','2026-07-01','2026-07-31','REVIEW','2026-08-01 09:00:00'
 WHERE NOT EXISTS (SELECT 1 FROM payroll_periods WHERE period_start='2026-07-01' AND period_end='2026-07-31');
 INSERT INTO payroll_details (period_id,employee_id,gross_salary,total_deduction,take_home_pay,calculation_detail)
-SELECT p.id,e.id,e.base_salary+800000,IF(e.employee_code IN ('EMP-0001','EMP-0002','EMP-0003','EMP-0004'),500000,250000),e.base_salary+800000-IF(e.employee_code IN ('EMP-0001','EMP-0002','EMP-0003','EMP-0004'),500000,250000),JSON_OBJECT('base_salary',e.base_salary,'tunjangan',800000,'source','dummy_seed')
-FROM payroll_periods p CROSS JOIN employees e WHERE p.period_start='2026-07-01' AND e.employee_code LIKE 'EMP-00%'
+SELECT p.id,e.id,COALESCE(s.earning_total,0),IF(e.employee_code IN ('EMP-0001','EMP-0002','EMP-0003','EMP-0004'),500000,250000),COALESCE(s.earning_total,0)-IF(e.employee_code IN ('EMP-0001','EMP-0002','EMP-0003','EMP-0004'),500000,250000),JSON_OBJECT('earning_components',COALESCE(s.earning_total,0),'source','dummy_seed')
+FROM payroll_periods p
+CROSS JOIN employees e
+LEFT JOIN (
+    SELECT epc.employee_id,SUM(epc.amount) AS earning_total
+    FROM employee_payroll_components epc
+    JOIN payroll_components pc ON pc.id=epc.component_id
+    WHERE pc.component_type='EARNING' AND pc.is_active=1
+      AND epc.effective_from <= '2026-07-31'
+      AND (epc.effective_until IS NULL OR epc.effective_until >= '2026-07-01')
+    GROUP BY epc.employee_id
+) s ON s.employee_id=e.id
+WHERE p.period_start='2026-07-01' AND e.employee_code LIKE 'EMP-00%'
 AND NOT EXISTS (SELECT 1 FROM payroll_details d WHERE d.period_id=p.id AND d.employee_id=e.id);
 
 INSERT INTO loan_applications (employee_id,amount,installment_amount,reason,status,approved_at)

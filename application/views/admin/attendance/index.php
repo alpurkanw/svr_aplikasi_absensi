@@ -17,7 +17,7 @@
                 <?php $this->load->view('admin/02_topbar'); ?>
                 <div class="container-fluid">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h1 class="h3 text-gray-800">Rekap Absensi</h1>
+                        <h1 class="h3 text-gray-800">Rekap Absensi Harian</h1>
                         <form method="get" action="<?= site_url('admin/attendance') ?>" class="form-inline"><input type="date" name="date" value="<?= html_escape($date) ?>" class="form-control mr-2"><button class="btn btn-primary">Tampilkan</button></form>
                     </div>
                     <div class="card shadow">
@@ -31,8 +31,7 @@
                                             <th>Masuk</th>
                                             <th>Pulang</th>
                                             <th>Terlambat</th>
-                                            <th>Pulang Cepat</th>
-                                            <th>Lembur</th>
+                                            <th>Denda</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -41,10 +40,10 @@
                                                 <td><?= html_escape($row['name']) ?></td>
                                                 <td><?= $row['check_in'] ? html_escape(date('H:i', strtotime($row['check_in']))) : '-' ?></td>
                                                 <td><?= $row['check_out'] ? html_escape(date('H:i', strtotime($row['check_out']))) : '-' ?></td>
-                                                <td><?= (int) $row['late_minutes'] ?> menit</td>
-                                                <td><?= (int) $row['early_leave_minutes'] ?> menit</td>
-                                                <td><?= (int) $row['overtime_minutes'] ?> menit</td>
-                                                <td><span class="badge badge-<?= $row['attendance_status'] === 'TERLAMBAT' ? 'warning' : 'success' ?>"><?= html_escape($row['attendance_status']) ?></span></td>
+                                                <td><?= (int) $row['late_minutes'] ?> menit </td>
+                                                <td>Rp <?= number_format((float) $row['late_penalty_amount'], 0, ',', '.') ?> (<?= number_format((float) $row['late_penalty_percentage'], 0, ',', '.') ?>%)</td>
+                                                <?php $status_badge = $row['attendance_status'] === 'TERLAMBAT' ? 'warning' : ($row['attendance_status'] === 'TIDAK HADIR' ? 'danger' : 'success'); ?>
+                                                <td><span class="badge badge-<?= $status_badge ?>"><?= html_escape($row['attendance_status']) ?></span></td>
                                             </tr><?php endforeach; ?></tbody>
                                 </table>
                             </div>

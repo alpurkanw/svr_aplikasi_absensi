@@ -63,6 +63,44 @@ class Employee_model extends CI_Model
             ->get()->result_array();
     }
 
+    public function salary_bases(array $employee_ids, $potong_gapok, $effective_date = null)
+    {
+        $employee_ids = array_values(array_unique(array_map('intval', $employee_ids)));
+        if (!$employee_ids) {
+            return array();
+        }
+
+        $effective_date = $effective_date ?: date('Y-m-d');
+        $rows = $this->db->select('epc.employee_id, SUM(epc.amount) AS total_salary', false)
+            ->from('employee_payroll_components epc')
+            ->join('payroll_components pc', 'pc.id = epc.component_id')
+            ->where_in('epc.employee_id', $employee_ids)
+            ->where('pc.component_type', 'EARNING')
+            ->where('pc.is_active', 1);
+        if ($potong_gapok) {
+            $this->db->group_start()
+                ->where_in('pc.code', array('GAPOK', 'GAJI_POKOK'))
+                ->or_where('LOWER(pc.name)', 'gaji pokok')
+            ->group_end();
+        } else {
+            $this->db->where('pc.calculation_type', 'FIXED');
+        }
+        $rows = $this->db
+            ->where('epc.effective_from <=', $effective_date)
+            ->group_start()
+                ->where('epc.effective_until IS NULL', null, false)
+                ->or_where('epc.effective_until >=', $effective_date)
+            ->group_end()
+            ->group_by('epc.employee_id')
+            ->get()->result_array();
+
+        $totals = array();
+        foreach ($rows as $row) {
+            $totals[(int) $row['employee_id']] = (float) $row['total_salary'];
+        }
+        return $totals;
+    }
+
     public function salary_details_with_names($employee_id)
     {
         return $this->db->select('pc.name, pc.component_type, pc.sort_order, epc.amount')

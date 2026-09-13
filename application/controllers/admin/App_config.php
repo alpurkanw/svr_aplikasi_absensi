@@ -29,6 +29,7 @@ class App_config extends CI_Controller
         $config = array(
             'nama_perusahaan' => trim($this->input->post('nama_perusahaan', true)),
             'alamat' => trim($this->input->post('alamat', true)),
+            'potong_gapok' => $this->input->post('potong_gapok', true) === 'true',
             'rule_absensi' => array(
                 'mulai_masuk' => $this->input->post('mulai_masuk', true),
                 'akhir_masuk' => $this->input->post('akhir_masuk', true),
@@ -63,16 +64,17 @@ class App_config extends CI_Controller
 
         foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
             $value = $config['rule_absensi'][$name];
-            if ($value === '' || filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value < 0 || (int) $value > 24) {
+            $normalized_time = $this->normalize_time($value);
+            if ($normalized_time === null) {
                 return $this->respond_save(422, array(
                     'success' => false,
-                    'message' => 'Jam aturan absensi harus berupa angka 0 sampai 24.',
+                    'message' => 'Jam aturan absensi harus menggunakan format HH:MM, antara 00:00 sampai 24:00.',
                 ));
             }
-            $config['rule_absensi'][$name] = (int) $value;
+            $config['rule_absensi'][$name] = $normalized_time;
         }
 
-        if ($config['rule_absensi']['akhir_masuk'] >= $config['rule_absensi']['mulai_pulang']) {
+        if ($this->time_to_minutes($config['rule_absensi']['akhir_masuk']) >= $this->time_to_minutes($config['rule_absensi']['mulai_pulang'])) {
             return $this->respond_save(422, array(
                 'success' => false,
                 'message' => 'Akhir masuk harus lebih kecil dari mulai pulang.',
@@ -122,11 +124,12 @@ class App_config extends CI_Controller
         $defaults = array(
             'nama_perusahaan' => 'PT LOGAM MURNI',
             'alamat' => 'JL. Jend Ahmad Yani',
+            'potong_gapok' => true,
             'rule_absensi' => array(
-                'mulai_masuk' => 6,
-                'akhir_masuk' => 9,
-                'mulai_pulang' => 17,
-                'akhir_pulang' => 24,
+                'mulai_masuk' => '06:00',
+                'akhir_masuk' => '09:00',
+                'mulai_pulang' => '17:00',
+                'akhir_pulang' => '24:00',
                 'potongan_keterlambatan' => array(
                     array('mulai_menit' => 6, 'sampai_menit' => 10, 'persentase' => 1),
                     array('mulai_menit' => 11, 'sampai_menit' => 15, 'persentase' => 2),
@@ -135,6 +138,34 @@ class App_config extends CI_Controller
             ),
         );
 
-        return array_replace_recursive($defaults, $config);
+        $config = array_replace_recursive($defaults, $config);
+        $config['potong_gapok'] = filter_var($config['potong_gapok'], FILTER_VALIDATE_BOOLEAN);
+        foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
+            $config['rule_absensi'][$name] = $this->normalize_time($config['rule_absensi'][$name]) ?: $defaults['rule_absensi'][$name];
+        }
+        return $config;
+    }
+
+    private function normalize_time($value)
+    {
+        if (is_int($value) || (is_string($value) && preg_match('/^\d{1,2}$/', trim($value)))) {
+            $value = (int) $value;
+            return $value >= 0 && $value <= 24 ? sprintf('%02d:00', $value) : null;
+        }
+        if (!is_string($value) || !preg_match('/^(\d{1,2}):(\d{2})$/', trim($value), $matches)) {
+            return null;
+        }
+        $hour = (int) $matches[1];
+        $minute = (int) $matches[2];
+        if ($hour < 0 || $hour > 24 || $minute < 0 || $minute > 59 || ($hour === 24 && $minute !== 0)) {
+            return null;
+        }
+        return sprintf('%02d:%02d', $hour, $minute);
+    }
+
+    private function time_to_minutes($value)
+    {
+        list($hour, $minute) = array_map('intval', explode(':', $value));
+        return ($hour * 60) + $minute;
     }
 }

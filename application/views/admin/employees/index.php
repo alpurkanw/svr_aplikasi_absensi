@@ -31,27 +31,21 @@
                                             <th>Nama</th>
                                             <th>Jabatan</th>
                                             <th>Departemen</th>
-                                            <th>Status Fingerprint</th>
-                                            <th>Aksi</th>
+                                            <th>Total Salary</th>
+                                            <th>Detail</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($employees as $employee): ?><tr>
-                                                <td><?= html_escape($employee['employee_code']) ?></td>
-                                                <td><?= html_escape($employee['name']) ?></td>
+                                                <td><a href="<?= site_url('admin/employees/detail-page/' . (int) $employee['id']) ?>"><?= html_escape($employee['employee_code']) ?></a></td>
+                                                <td><a href="<?= site_url('admin/employees/detail-page/' . (int) $employee['id']) ?>"><?= html_escape($employee['name']) ?></a></td>
                                                 <td><?= html_escape($employee['position_name']) ?></td>
                                                 <td><?= html_escape($employee['department_name']) ?></td>
                                                 <td>
-                                                    <?php if ((int) $employee['fingerprint_count'] > 0): ?>
-                                                        <span class="badge badge-success">Sudah ada (<?= (int) $employee['fingerprint_count'] ?>/3)</span>
-                                                    <?php else: ?>
-                                                        <span class="badge badge-secondary">Belum ada fingerprint</span>
-                                                    <?php endif; ?>
+                                                    <div>Rp <?= number_format((float) $employee['total_salary'], 0, ',', '.') ?></div>
+                                                    <small class="text-muted"><?= (int) $employee['salary_component_count'] ?>/<?= (int) $total_components ?> komponen</small>
                                                 </td>
-                                                <td class="text-nowrap">
-                                                    <button type="button" class="btn btn-sm btn-warning btn-edit-karyawan" data-id="<?= (int) $employee['id'] ?>"><i class="fas fa-edit"></i> Edit</button>
-                                                    <button type="button" class="btn btn-sm btn-danger btn-delete-karyawan" data-id="<?= (int) $employee['id'] ?>" data-name="<?= html_escape($employee['name']) ?>"><i class="fas fa-trash"></i> Hapus</button>
-                                                </td>
+                                                <td><a class="btn btn-sm btn-primary" href="<?= site_url('admin/employees/detail-page/' . (int) $employee['id']) ?>"><i class="fas fa-eye"></i> Lihat Detail</a></td>
                                             </tr><?php endforeach; ?>
                                     </tbody>
                                 </table>

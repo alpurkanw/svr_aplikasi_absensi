@@ -36,7 +36,6 @@
                                             <th>Hadir</th>
                                             <th>Terlambat</th>
                                             <th>Menit Terlambat</th>
-                                            <th>Pulang Cepat</th>
                                             <th>Tidak Hadir</th>
                                             <th>Status</th>
                                         </tr>
@@ -49,7 +48,6 @@
                                                 <td><?= (int) $row['hadir'] ?> / <?= (int) $row['workdays'] ?></td>
                                                 <td><?= (int) $row['terlambat'] ?></td>
                                                 <td><?= (int) $row['total_menit_terlambat'] ?> menit</td>
-                                                <td><?= (int) $row['pulang_cepat'] ?></td>
                                                 <td><?= (int) $row['tidak_hadir'] ?></td>
                                                 <td>
                                                     <?php $status_class = $row['tidak_hadir'] > 0 ? 'danger' : ($row['terlambat'] > 0 ? 'warning' : 'success'); ?>
