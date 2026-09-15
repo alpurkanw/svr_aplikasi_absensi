@@ -2,6 +2,7 @@
     "nama_perusahaan": "PT LOGAM MURNI 2",
     "alamat": "JL. Jend Ahmad Yani2",
     "potong_gapok": true,
+    "cut_off_absensi": 14,
     "rule_absensi": {
         "mulai_masuk": "12:20",
         "akhir_masuk": "14:00",

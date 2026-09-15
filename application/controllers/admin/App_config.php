@@ -30,6 +30,7 @@ class App_config extends CI_Controller
             'nama_perusahaan' => trim($this->input->post('nama_perusahaan', true)),
             'alamat' => trim($this->input->post('alamat', true)),
             'potong_gapok' => $this->input->post('potong_gapok', true) === 'true',
+            'cut_off_absensi' => $this->input->post('cut_off_absensi', true),
             'rule_absensi' => array(
                 'mulai_masuk' => $this->input->post('mulai_masuk', true),
                 'akhir_masuk' => $this->input->post('akhir_masuk', true),
@@ -61,6 +62,14 @@ class App_config extends CI_Controller
                 'message' => 'Nama perusahaan dan alamat wajib diisi.',
             ));
         }
+
+        if (filter_var($config['cut_off_absensi'], FILTER_VALIDATE_INT) === false || (int) $config['cut_off_absensi'] < 1 || (int) $config['cut_off_absensi'] > 31) {
+            return $this->respond_save(422, array(
+                'success' => false,
+                'message' => 'Cut off absensi harus berupa angka tanggal 1 sampai 31.',
+            ));
+        }
+        $config['cut_off_absensi'] = (int) $config['cut_off_absensi'];
 
         foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
             $value = $config['rule_absensi'][$name];
@@ -125,6 +134,7 @@ class App_config extends CI_Controller
             'nama_perusahaan' => 'PT LOGAM MURNI',
             'alamat' => 'JL. Jend Ahmad Yani',
             'potong_gapok' => true,
+            'cut_off_absensi' => 15,
             'rule_absensi' => array(
                 'mulai_masuk' => '06:00',
                 'akhir_masuk' => '09:00',
@@ -140,6 +150,10 @@ class App_config extends CI_Controller
 
         $config = array_replace_recursive($defaults, $config);
         $config['potong_gapok'] = filter_var($config['potong_gapok'], FILTER_VALIDATE_BOOLEAN);
+        $config['cut_off_absensi'] = filter_var($config['cut_off_absensi'], FILTER_VALIDATE_INT, array('options' => array('default' => 15)));
+        if ($config['cut_off_absensi'] < 1 || $config['cut_off_absensi'] > 31) {
+            $config['cut_off_absensi'] = $defaults['cut_off_absensi'];
+        }
         foreach (array('mulai_masuk', 'akhir_masuk', 'mulai_pulang', 'akhir_pulang') as $name) {
             $config['rule_absensi'][$name] = $this->normalize_time($config['rule_absensi'][$name]) ?: $defaults['rule_absensi'][$name];
         }
