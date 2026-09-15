@@ -25,7 +25,8 @@
 
 
     <div class="sidebar-heading">TRANSAKSI</div>
-    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payslips/input') ?>"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Input Slip Gaji</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payslips/input') ?>"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Input Gaji</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payslips/input') ?>"><i class="fas fa-fw fa-file-invoice-dollar"></i><span>Input Lemburan</span></a></li>
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/client-credentials') ?>"><i class="fas fa-fw fa-cog"></i><span>Client Credentials</span></a></li> -->
     <!-- <li class="nav-item"><a class="nav-link" href="<?= site_url('admin/payroll-components') ?>"><i class="fas fa-fw fa-id-card"></i><span>Komponen Gaji</span></a></li> -->
 
