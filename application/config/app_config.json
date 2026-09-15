@@ -3,8 +3,9 @@
     "alamat": "JL. Jend Ahmad Yani2",
     "potong_gapok": true,
     "cut_off_absensi": 14,
+    "workin_day": "senin_jumat",
     "rule_absensi": {
-        "mulai_masuk": "12:20",
+        "mulai_masuk": "00:00",
         "akhir_masuk": "14:00",
         "mulai_pulang": "17:00",
         "akhir_pulang": "24:00",

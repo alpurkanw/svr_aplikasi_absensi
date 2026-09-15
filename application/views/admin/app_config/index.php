@@ -36,7 +36,7 @@
                                         <tr>
                                             <td>nama_perusahaan</td>
                                             <td><?= html_escape($config['nama_perusahaan']) ?></td>
-                                            <td rowspan="11" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
+                                            <td rowspan="12" class="align-middle"><button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#appConfigModal">Edit</button></td>
                                         </tr>
                                         <tr>
                                             <td>alamat</td>
@@ -49,6 +49,17 @@
                                         <tr>
                                             <td>cut_off_absensi</td>
                                             <td><?= (int) $config['cut_off_absensi'] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td>workin_day</td>
+                                            <td><?php
+                                                $workin_day_labels = array(
+                                                    'senin_jumat' => 'Senin - Jumat',
+                                                    'senin_sabtu' => 'Senin - Sabtu',
+                                                    'senin_minggu' => 'Senin - Minggu',
+                                                );
+                                                echo html_escape($workin_day_labels[$config['workin_day']]);
+                                                ?></td>
                                         </tr>
                                         <tr>
                                             <td>rule_absensi.mulai_masuk <br>Variabel ini diisi dengan jam Masuk Kantor, <br>Dari sini juga akan mulai dihitung keterlambatan</td>
@@ -98,6 +109,11 @@
                                 <option value="false" <?= !$config['potong_gapok'] ? 'selected' : '' ?>>false</option>
                             </select><small class="form-text text-muted">true: hanya Gaji Pokok. false: Gaji Pokok dan komponen earning FIXED sebagai penambah.</small></div>
                         <div class="form-group"><label>Cut off absensi (tanggal)</label><input type="number" name="cut_off_absensi" class="form-control" min="1" max="31" step="1" value="<?= (int) $config['cut_off_absensi'] ?>" required><small class="form-text text-muted">Tanggal mulai periode absensi, antara 1 sampai 31.</small></div>
+                        <div class="form-group"><label>Hari kerja</label><select name="workin_day" class="form-control" required>
+                                <option value="senin_jumat" <?= $config['workin_day'] === 'senin_jumat' ? 'selected' : '' ?>>Senin - Jumat</option>
+                                <option value="senin_sabtu" <?= $config['workin_day'] === 'senin_sabtu' ? 'selected' : '' ?>>Senin - Sabtu</option>
+                                <option value="senin_minggu" <?= $config['workin_day'] === 'senin_minggu' ? 'selected' : '' ?>>Senin - Minggu</option>
+                            </select></div>
                         <h6 class="font-weight-bold text-gray-800 mt-4">Rule absensi</h6>
                         <div class="form-row">
                             <div class="form-group col-md-6"><label>Mulai masuk</label><input type="text" name="mulai_masuk" class="form-control" pattern="(?:[01]\d|2[0-4]):[0-5]\d" placeholder="HH:MM" value="<?= html_escape($config['rule_absensi']['mulai_masuk']) ?>" required></div>

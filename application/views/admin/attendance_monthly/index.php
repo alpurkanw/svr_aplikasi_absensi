@@ -8,6 +8,15 @@
     <link href="<?= base_url('assets/adminsb/vendor/fontawesome-free/css/all.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/adminsb/css/sb-admin-2.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/adminsb/vendor/datatables/dataTables.bootstrap4.min.css') ?>" rel="stylesheet">
+    <style>
+        .clickable-row {
+            cursor: pointer;
+        }
+
+        .clickable-row:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
 
 <body id="page-top">
@@ -24,9 +33,41 @@
                             <button class="btn btn-primary"><i class="fas fa-search mr-1"></i>Tampilkan</button>
                         </form>
                     </div>
+                    <div class="row">
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Denda</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">Rp <?= number_format((float) $total_fine, 0, ',', '.') ?></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Jumlah Karyawan</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?= (int) $employee_count ?></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Jumlah Hari Kerja</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?= (int) $workdays ?></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="card shadow mb-4">
                         <div class="card-body">
-                            <p class="text-muted mb-3">Hari kerja bulan ini: <strong><?= (int) $workdays ?></strong></p>
+                            <p class="text-muted mb-3">
+                                Periode: <strong><?= html_escape($period_start) ?> s/d <?= html_escape($period_end) ?></strong>
+                                <span class="mx-2">|</span>
+                                Hari kerja: <strong><?= (int) $workdays ?></strong>
+                                <span class="mx-2">|</span>
+                                Hari libur: <strong><?= (int) $holiday_count ?></strong>
+                            </p>
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="monthlyAttendanceTable">
                                     <thead>
@@ -34,25 +75,20 @@
                                             <th>Kode</th>
                                             <th>Nama</th>
                                             <th>Hadir</th>
-                                            <th>Terlambat</th>
-                                            <th>Menit Terlambat</th>
-                                            <th>Tidak Hadir</th>
-                                            <th>Status</th>
+                                            <th>Terlambat (&gt;5 menit)</th>
+                                            <th>Total Denda</th>
+                                            <th>Total Tidak Hadir</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($rows as $row): ?>
-                                            <tr>
+                                            <tr class="clickable-row" data-href="<?= site_url('admin/attendance-monthly/detail/' . (int) $row['employee_id'] . '?month=' . rawurlencode($month)) ?>">
                                                 <td><?= html_escape($row['employee_code']) ?></td>
-                                                <td><?= html_escape($row['name']) ?></td>
+                                                <td><a href="<?= site_url('admin/attendance-monthly/detail/' . (int) $row['employee_id'] . '?month=' . rawurlencode($month)) ?>"><?= html_escape($row['name']) ?></a></td>
                                                 <td><?= (int) $row['hadir'] ?> / <?= (int) $row['workdays'] ?></td>
-                                                <td><?= (int) $row['terlambat'] ?></td>
-                                                <td><?= (int) $row['total_menit_terlambat'] ?> menit</td>
+                                                <td><?= (int) $row['terlambat_lebih_5'] ?></td>
+                                                <td>Rp <?= number_format($row['total_denda'], 0, ',', '.') ?></td>
                                                 <td><?= (int) $row['tidak_hadir'] ?></td>
-                                                <td>
-                                                    <?php $status_class = $row['tidak_hadir'] > 0 ? 'danger' : ($row['terlambat'] > 0 ? 'warning' : 'success'); ?>
-                                                    <span class="badge badge-<?= $status_class ?>"><?= $row['tidak_hadir'] > 0 ? 'Perlu Review' : ($row['terlambat'] > 0 ? 'Terlambat' : 'Baik') ?></span>
-                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -86,6 +122,12 @@
                     next: 'Berikutnya',
                     previous: 'Sebelumnya'
                 }
+            }
+        });
+
+        $('#monthlyAttendanceTable tbody').on('click', '.clickable-row', function(event) {
+            if (!$(event.target).closest('a').length) {
+                window.location.href = $(this).data('href');
             }
         });
     </script>

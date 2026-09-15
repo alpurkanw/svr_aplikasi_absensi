@@ -101,7 +101,33 @@ class Attendance extends CI_Controller
         unset($row);
 
         $rows = array_values($rows);
-        $this->load->view('admin/attendance/index', array('title' => 'Rekap Absensi', 'date' => $date, 'rows' => $rows));
+        $total_fine = 0;
+        $late_count = 0;
+        $attendance_count = 0;
+        $not_late_count = 0;
+        foreach ($rows as $row) {
+            $total_fine += (float) $row['late_penalty_amount'];
+            if ($row['attendance_status'] === 'TERLAMBAT') {
+                $late_count++;
+            }
+            if ($row['check_in'] !== null) {
+                $attendance_count++;
+                if ($row['late_minutes'] === 0) {
+                    $not_late_count++;
+                }
+            }
+        }
+        $total_employee_count = $this->db->where('is_active', 1)->count_all_results('employees');
+        $this->load->view('admin/attendance/index', array(
+            'title' => 'Rekap Absensi',
+            'date' => $date,
+            'rows' => $rows,
+            'total_fine' => $total_fine,
+            'late_count' => $late_count,
+            'attendance_count' => $attendance_count,
+            'not_late_count' => $not_late_count,
+            'total_employee_count' => $total_employee_count,
+        ));
     }
 
     public function process()

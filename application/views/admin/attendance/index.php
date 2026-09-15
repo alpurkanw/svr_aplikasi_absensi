@@ -20,6 +20,41 @@
                         <h1 class="h3 text-gray-800">Rekap Absensi Harian</h1>
                         <form method="get" action="<?= site_url('admin/attendance') ?>" class="form-inline"><input type="date" name="date" value="<?= html_escape($date) ?>" class="form-control mr-2"><button class="btn btn-primary">Tampilkan</button></form>
                     </div>
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                            <div class="card border-left-primary shadow-sm h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Karyawan Absen / Total</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?= (int) $attendance_count ?> / <?= (int) $total_employee_count ?></div>
+                                    <small class="text-muted">Masih ada <?= (int) max(0, $total_employee_count - $attendance_count) ?> orang yang belum absen.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                            <div class="card border-left-info shadow-sm h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Nominal Keterlambatan</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">Rp <?= number_format((float) $total_fine, 0, ',', '.') ?></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                            <div class="card border-left-warning shadow-sm h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Jumlah Karyawan Terlambat</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?= (int) $late_count ?> orang</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
+                            <div class="card border-left-danger shadow-sm h-100 py-2">
+                                <div class="card-body">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Jumlah Tidak Terlambat</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?= (int) $not_late_count ?> orang</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="card shadow">
                         <div class="card-body">
                             <div class="table-responsive">

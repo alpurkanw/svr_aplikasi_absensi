@@ -108,6 +108,7 @@ $route['admin/presensi'] = 'admin/presensi_log/index';
 $route['admin/attendance'] = 'admin/attendance/index';
 $route['admin/attendance/process'] = 'admin/attendance/process';
 $route['admin/attendance-monthly'] = 'admin/attendance_monthly/index';
+$route['admin/attendance-monthly/detail/(:num)'] = 'admin/attendance_monthly/detail/$1';
 $route['admin/holidays'] = 'admin/holidays/index';
 $route['admin/holidays/save'] = 'admin/holidays/save';
 $route['admin/holidays/delete/(:num)'] = 'admin/holidays/delete/$1';
