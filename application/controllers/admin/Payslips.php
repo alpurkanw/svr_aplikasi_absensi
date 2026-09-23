@@ -10,6 +10,7 @@ class Payslips extends CI_Controller
             redirect('Auth/open_f_login');
         }
         $this->load->model('Employee_model');
+        $this->load->model('Payroll_model');
     }
 
     public function input()
@@ -50,6 +51,12 @@ class Payslips extends CI_Controller
             return $this->output->set_status_header(422)->set_output(json_encode(array(
                 'success' => false,
                 'message' => 'Pilih minimal satu karyawan.'
+            )));
+        }
+        if ($this->Payroll_model->is_finalized($period)) {
+            return $this->output->set_status_header(422)->set_output(json_encode(array(
+                'success' => false,
+                'message' => 'Periode payroll sudah final dan tidak dapat diubah.'
             )));
         }
 

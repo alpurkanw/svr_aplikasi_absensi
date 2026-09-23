@@ -35,7 +35,7 @@ CREATE DATABASE payroll_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 6. Aktifkan Apache `mod_rewrite` dan pastikan `AllowOverride All` aktif untuk folder project.
 7. Sesuaikan `RewriteBase` pada [`.htaccess`](.htaccess) dengan lokasi folder. Untuk instalasi ini nilainya `/devel/payroll_app/`.
 
-`database.sql` aman dijalankan ulang. File tersebut menambahkan layer employee, mapping fingerprint, shift, `attendance_daily`, adjustment, payroll, kasbon ledger, audit log, dan `tbl_user` kompatibel dengan login CI3. Tabel `presensi` tetap menjadi raw source dan tidak diubah oleh attendance engine.
+`database.sql` aman dijalankan ulang. File tersebut menambahkan layer employee, mapping fingerprint, shift, `attendance_daily`, payroll, payslip, API token, dan `tbl_user` kompatibel dengan login CI3. Tabel `presensi` tetap menjadi raw source dan tidak diubah oleh attendance engine.
 
 ## Endpoint
 

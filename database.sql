@@ -158,28 +158,6 @@ CREATE TABLE IF NOT EXISTS `tbl_user` (
     KEY `idx_tbl_user_role` (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `attendance_adjustments` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `employee_id` BIGINT UNSIGNED NOT NULL,
-    `attendance_date` DATE NOT NULL,
-    `adjustment_type` ENUM('SAKIT','IZIN','DINAS','TUGAS_LUAR','LUPA_MASUK','LUPA_PULANG','MASALAH_FINGERPRINT','LAINNYA') NOT NULL,
-    `check_in` DATETIME NULL,
-    `check_out` DATETIME NULL,
-    `reason` TEXT NOT NULL,
-    `attachment` VARCHAR(255) NULL,
-    `status` ENUM('DRAFT','SUBMITTED','NEED_REVISION','APPROVED','REJECTED','CANCELLED') NOT NULL DEFAULT 'DRAFT',
-    `submitted_by` INT NULL,
-    `approved_by` INT NULL,
-    `approved_at` DATETIME NULL,
-    `rejection_reason` TEXT NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_adjustment_employee_date` (`employee_id`, `attendance_date`),
-    KEY `idx_adjustment_status` (`status`),
-    CONSTRAINT `fk_adjustment_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS `payroll_components` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `code` VARCHAR(50) NOT NULL,
@@ -220,31 +198,21 @@ CREATE TABLE IF NOT EXISTS `employee_payroll_components` (
 
 CREATE TABLE IF NOT EXISTS `payroll_periods` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(100) NOT NULL,
+    `period_year` SMALLINT UNSIGNED NOT NULL,
+    `period_month` TINYINT UNSIGNED NOT NULL,
+    `period_label` VARCHAR(50) NOT NULL,
     `period_start` DATE NOT NULL,
     `period_end` DATE NOT NULL,
-    `status` ENUM('DRAFT','CALCULATING','REVIEW','FINALIZED','CANCELLED') NOT NULL DEFAULT 'DRAFT',
-    `calculated_at` DATETIME NULL,
+    `status` ENUM('DRAFT','PROCESSING','REVIEW','FINALIZED') NOT NULL DEFAULT 'DRAFT',
+    `processed_at` DATETIME NULL,
     `finalized_at` DATETIME NULL,
     `finalized_by` INT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_payroll_period_dates` (`period_start`, `period_end`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `payroll_details` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `period_id` BIGINT UNSIGNED NOT NULL,
-    `employee_id` BIGINT UNSIGNED NOT NULL,
-    `gross_salary` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `total_deduction` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `take_home_pay` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `calculation_detail` JSON NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_payroll_detail_employee` (`period_id`, `employee_id`),
-    CONSTRAINT `fk_payroll_detail_period` FOREIGN KEY (`period_id`) REFERENCES `payroll_periods` (`id`),
-    CONSTRAINT `fk_payroll_detail_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
+    UNIQUE KEY `uq_payroll_period_year_month` (`period_year`, `period_month`),
+    KEY `idx_payroll_period_status` (`status`),
+    CONSTRAINT `fk_payroll_period_finalized_by` FOREIGN KEY (`finalized_by`) REFERENCES `tbl_user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `trx_payslip` (
@@ -266,53 +234,6 @@ CREATE TABLE IF NOT EXISTS `trx_payslip` (
     KEY `idx_trx_payslip_period` (`period_year`, `period_month`),
     CONSTRAINT `fk_trx_payslip_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
     CONSTRAINT `fk_trx_payslip_component` FOREIGN KEY (`component_id`) REFERENCES `payroll_components` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `loan_applications` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `employee_id` BIGINT UNSIGNED NOT NULL,
-    `amount` DECIMAL(15,2) NOT NULL,
-    `installment_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `reason` TEXT NULL,
-    `status` ENUM('DRAFT','SUBMITTED','APPROVED','REJECTED','CANCELLED') NOT NULL DEFAULT 'DRAFT',
-    `approved_by` INT NULL,
-    `approved_at` DATETIME NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_loan_application_employee` (`employee_id`, `status`),
-    CONSTRAINT `fk_loan_application_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `loan_ledger` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `employee_id` BIGINT UNSIGNED NOT NULL,
-    `loan_application_id` BIGINT UNSIGNED NULL,
-    `transaction_date` DATE NOT NULL,
-    `transaction_type` ENUM('KASBON','PEMBAYARAN','POTONGAN_PAYROLL','KOREKSI','PELUNASAN') NOT NULL,
-    `debit` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `credit` DECIMAL(15,2) NOT NULL DEFAULT 0,
-    `reference` VARCHAR(100) NULL,
-    `notes` TEXT NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_loan_ledger_employee_date` (`employee_id`, `transaction_date`),
-    CONSTRAINT `fk_loan_ledger_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
-    CONSTRAINT `fk_loan_ledger_application` FOREIGN KEY (`loan_application_id`) REFERENCES `loan_applications` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `audit_logs` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `user_id` INT NULL,
-    `action` VARCHAR(50) NOT NULL,
-    `module` VARCHAR(50) NOT NULL,
-    `record_id` VARCHAR(100) NULL,
-    `old_value` JSON NULL,
-    `new_value` JSON NULL,
-    `ip_address` VARCHAR(45) NULL,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_audit_module_record` (`module`, `record_id`),
-    KEY `idx_audit_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `api_tokens` (

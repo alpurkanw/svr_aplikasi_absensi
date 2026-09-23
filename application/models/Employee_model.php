@@ -18,21 +18,6 @@ class Employee_model extends CI_Model
         return $this->db->where('employee_code', $employee_code)->get($this->table)->row_array();
     }
 
-    public function exists_by_code($employee_code)
-    {
-        return (bool) $this->db->where('LOWER(employee_code) =', strtolower(trim($employee_code)))->count_all_results($this->table);
-    }
-
-    public function exists_by_nip($nip)
-    {
-        return (bool) $this->db->where('LOWER(nip) =', strtolower(trim($nip)))->count_all_results($this->table);
-    }
-
-    public function exists_by_nik($nik)
-    {
-        return (bool) $this->db->where('LOWER(nik) =', strtolower(trim($nik)))->count_all_results($this->table);
-    }
-
     public function find_by_id($id)
     {
         return $this->db->where('id', (int) $id)->get($this->table)->row_array();
@@ -57,8 +42,8 @@ class Employee_model extends CI_Model
             ->where('pc.is_active', 1)
             ->where('epc.effective_from <=', date('Y-m-d'))
             ->group_start()
-                ->where('epc.effective_until IS NULL', null, false)
-                ->or_where('epc.effective_until >=', date('Y-m-d'))
+            ->where('epc.effective_until IS NULL', null, false)
+            ->or_where('epc.effective_until >=', date('Y-m-d'))
             ->group_end()
             ->get()->result_array();
     }
@@ -81,15 +66,15 @@ class Employee_model extends CI_Model
             $this->db->group_start()
                 ->where_in('pc.code', array('GAPOK', 'GAJI_POKOK'))
                 ->or_where('LOWER(pc.name)', 'gaji pokok')
-            ->group_end();
+                ->group_end();
         } else {
             $this->db->where('pc.calculation_type', 'FIXED');
         }
         $rows = $this->db
             ->where('epc.effective_from <=', $effective_date)
             ->group_start()
-                ->where('epc.effective_until IS NULL', null, false)
-                ->or_where('epc.effective_until >=', $effective_date)
+            ->where('epc.effective_until IS NULL', null, false)
+            ->or_where('epc.effective_until >=', $effective_date)
             ->group_end()
             ->group_by('epc.employee_id')
             ->get()->result_array();
@@ -110,8 +95,8 @@ class Employee_model extends CI_Model
             ->where('pc.is_active', 1)
             ->where('epc.effective_from <=', date('Y-m-d'))
             ->group_start()
-                ->where('epc.effective_until IS NULL', null, false)
-                ->or_where('epc.effective_until >=', date('Y-m-d'))
+            ->where('epc.effective_until IS NULL', null, false)
+            ->or_where('epc.effective_until >=', date('Y-m-d'))
             ->group_end()
             ->order_by('pc.component_type', 'ASC')
             ->order_by('pc.sort_order', 'ASC')
